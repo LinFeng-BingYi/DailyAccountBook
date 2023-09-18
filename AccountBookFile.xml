@@ -1,0 +1,112 @@
+<DailyAccountBook>
+    <balance>
+        <fund>
+            <value>5000.00</value>
+            <category>0</category>
+            <fundName>微信零钱</fundName>
+        </fund>
+        <fund>
+            <value>999.00</value>
+            <category>1</category>
+            <fundName>中国银行卡</fundName>
+        </fund>
+        <fund>
+            <value>90.00</value>
+            <category>2</category>
+            <fundName>羊城通</fundName>
+        </fund>
+        <fund>
+            <value>1700.07</value>
+            <category>3</category>
+            <fundName>支付宝余额宝</fundName>
+        </fund>
+        <fund>
+            <value>5000.00</value>
+            <category>4</category>
+            <fundName>代管存款</fundName>
+        </fund>
+    </balance>
+    <year value="2023">
+        <month value="09">
+            <day value="11">
+                <expenses>
+                    <expense necessity="True" associatedFund="None">
+                        <value>5.00</value>
+                        <category>1</category>
+                        <detail>地铁</detail>
+                        <describe>早上上班。羊城通卡余额=100-5=95元</describe>
+                        <from>2</from>
+                    </expense>
+                    <expense necessity="True" associatedFund="None">
+                        <value>5.00</value>
+                        <category>1</category>
+                        <detail>地铁</detail>
+                        <describe>晚上下班。羊城通卡余额=95-5=90元</describe>
+                        <from>2</from>
+                    </expense>
+                    <expense necessity="False" associatedFund="None">
+                        <value>1.00</value>
+                        <category>12</category>
+                        <detail>业务手续费</detail>
+                        <describe>微信零钱提现1000的手续费</describe>
+                        <from>0</from>
+                    </expense>
+                </expenses>
+                <incomes>
+                    <income associatedFund="4">
+                        <value>3000.00</value>
+                        <category>5</category>
+                        <!-->代管存款的收支，应属于“非本人相关”类别<-->
+                        <detail>转账</detail>
+                        <describe>托管人转给本人3000，帮忙存放。本人微信零钱余额=3000+3000=6000元；同时代管存款余额=2000+3000=5000元</describe>
+                        <to>0</to>
+                    </income>
+                    <income associatedFund="None">
+                        <value>0.07</value>
+                        <category>2</category>
+                        <detail>理财</detail>
+                        <describe>昨日余额宝收益。余额=1700+0.07=1700.07</describe>
+                        <to>3</to>
+                    </income>
+                </incomes>
+                <movements>
+                    <!-->存款账户之间的资金转移不记录在收支变化量中，仅修改账户余额。由于两个账户余额一增一减，而总量不变，记录下来反而影响个人收支统计<-->
+                    <movement>
+                        <value>999.00</value>
+                        <detail>提现</detail>
+                        <describe>从微信零钱向中国银行卡提现1000元。完成后微信零钱余额=6000-999-1=5000；中国银行卡余额=0+999=999；被收取0.1%的手续费</describe>
+                        <from>0</from>
+                        <to>1</to>
+                    </movement>
+                </movements>
+                <variation>
+                    <fund>
+                        <category>0</category>
+                        <out>1.00</out>
+                        <in>3000.00</in>
+                    </fund>
+                    <fund>
+                        <category>1</category>
+                        <out>0.00</out>
+                        <in>0.00</in>
+                    </fund>
+                    <fund>
+                        <category>2</category>
+                        <out>10.00</out>
+                        <in>0.00</in>
+                    </fund>
+                    <fund>
+                        <category>3</category>
+                        <out>0.00</out>
+                        <in>0.07</in>
+                    </fund>
+                    <fund>
+                        <category>4</category>
+                        <out>0.00</out>
+                        <in>3000.00</in>
+                    </fund>
+                </variation>
+            </day>
+        </month>
+    </year>
+</DailyAccountBook>
