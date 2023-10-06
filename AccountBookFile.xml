@@ -1,5 +1,6 @@
 <DailyAccountBook>
     <balance>
+        <!-->新增动账记录后，各存款账户余额<-->
         <fund>
             <value>5000.00</value>
             <category>0</category>

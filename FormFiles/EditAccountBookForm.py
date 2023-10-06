@@ -1,14 +1,15 @@
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QFileDialog, QTableWidgetItem
 from PySide6.QtCore import Qt, QDate
 
+from CustomWidgets import ComboBoxInTableWidget
+
 import os
+from collections import OrderedDict
 
 from FormFiles.EditAccountBook import Ui_EditAccountBook
 from FileProcess.AccountBookXML import AccountBookXMLProcessor
 
-TABLEWIDGET_EXPENSE_COLUMN_HEAD = {'基本需求': 'necessity', '数值': 'value', '类别': 'category', '细则': 'detail', '描述': 'describe', '支出账户': 'from', '关联账户': 'associatedFund', '操作': ''}
-TABLEWIDGET_INCOME_COLUMN_HEAD = {'数值': 'value', '类别': 'category', '细则': 'detail', '描述': 'describe', '收入账户': 'to', '关联账户': 'associatedFund', '操作': ''}
-TABLEWIDGET_MOVEMENT_COLUMN_HEAD = {'数值': 'value', '细则': 'detail', '描述': 'describe', '转出账户': 'from', '转入账户': 'to', '操作': ''}
+from CommonFiles.ConstArgs import *
 
 
 class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
@@ -16,12 +17,12 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
     def __init__(self):
         super(WidgetEditAccountBook, self).__init__()
         self.setupUi(self)
-        self.tableWidget_expense.setColumnCount(len(TABLEWIDGET_EXPENSE_COLUMN_HEAD))
-        self.tableWidget_expense.setHorizontalHeaderLabels(list(TABLEWIDGET_EXPENSE_COLUMN_HEAD))
-        self.tableWidget_income.setColumnCount(len(TABLEWIDGET_INCOME_COLUMN_HEAD))
-        self.tableWidget_income.setHorizontalHeaderLabels(list(TABLEWIDGET_INCOME_COLUMN_HEAD))
-        self.tableWidget_movement.setColumnCount(len(TABLEWIDGET_MOVEMENT_COLUMN_HEAD))
-        self.tableWidget_movement.setHorizontalHeaderLabels(list(TABLEWIDGET_MOVEMENT_COLUMN_HEAD))
+        self.tableWidget_expense.setColumnCount(len(expenseConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_expense.setHorizontalHeaderLabels(list(expenseConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_income.setColumnCount(len(incomeConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_income.setHorizontalHeaderLabels(list(incomeConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_movement.setColumnCount(len(movementConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_movement.setHorizontalHeaderLabels(list(movementConst.TABLEWIDGET_COLUMN_HEAD))
 
         self.cwd = os.getcwd()              # 程序当前工作目录
         self.file_processor: AccountBookXMLProcessor = None          # 收支记录文件读写器
@@ -70,24 +71,128 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.updateIncomeTable(self.file_parse_result['incomes'])
         self.updateMovementTable(self.file_parse_result['movements'])
 
+    def setExistTableCell(self, tableWidget, current_row, value_dict: dict, const_class):
+        """
+        Describe: 为已存在记录的表格行设置单元格。根据列名设置对应类型(格式)的单元格
+
+        Args:
+            tableWidget: QTableWidget
+                涉及的表格
+            current_row: int
+                本条记录所在行号
+            value_dict: dict
+                记录字典
+            const_class: Union[ExpenseConst, IncomeConst, MovementConst]
+                记录类型对应的常量类
+        """
+        keys_list = list(value_dict.keys())
+        for key, value in value_dict.items():
+            if key == 'necessity':
+                comboBox = ComboBoxInTableWidget(NECESSITY, value)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'value':
+                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(str(value)))
+            elif key == 'category':
+                comboBox = ComboBoxInTableWidget(const_class.CATEGORY, value)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'detail':
+                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(value))
+            elif key == 'describe':
+                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(value))
+            elif key == 'from':
+                comboBox = ComboBoxInTableWidget(fundConst.CATEGORY, value)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'to':
+                comboBox = ComboBoxInTableWidget(fundConst.CATEGORY, value)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'associatedFund':
+                comboBox = ComboBoxInTableWidget(fundConst.CATEGORY, value)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            else:
+                print("未知的记录属性！！")
+                return
+        tableWidget.setCellWidget(current_row, len(keys_list), self.buttonsForExistRow(tableWidget))
+
+    def setBlankTableCell(self, tableWidget, current_row, const_class):
+        """
+        Describe: 为表格的空白行设置单元格。根据列名设置对应类型(格式)的单元格
+
+        Args:
+            tableWidget: QTableWidget
+                涉及的表格
+            current_row: int
+                本条记录所在行号
+            const_class: Union[ExpenseConst, IncomeConst, MovementConst]
+                记录类型对应的常量类
+        """
+        keys_list = [const_class.TABLEWIDGET_COLUMN_HEAD[tableWidget.horizontalHeaderItem(i).text()] for i in range(tableWidget.columnCount()-1)]
+        for key in keys_list:
+            if key == 'necessity':
+                comboBox = ComboBoxInTableWidget(NECESSITY, 'True')
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'value':
+                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(''))
+            elif key == 'category':
+                comboBox = ComboBoxInTableWidget(const_class.CATEGORY, 0)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'detail':
+                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(''))
+            elif key == 'describe':
+                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(' '))
+            elif key == 'from':
+                comboBox = ComboBoxInTableWidget(fundConst.CATEGORY, 0)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'to':
+                comboBox = ComboBoxInTableWidget(fundConst.CATEGORY, 0)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            elif key == 'associatedFund':
+                comboBox = ComboBoxInTableWidget(fundConst.CATEGORY, None)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
+            else:
+                print("未知的记录属性！！: {}", format(key))
+                return
+        tableWidget.setCellWidget(current_row, len(keys_list), self.buttonsForNewRow(tableWidget))
+
+    def getExistTableCell(self, tableWidget, current_row, const_class):
+        new_data_dict = OrderedDict()
+        for i in range(tableWidget.columnCount() - 1):
+            key = const_class.TABLEWIDGET_COLUMN_HEAD[tableWidget.horizontalHeaderItem(i).text()]
+            if key == 'necessity':
+                comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
+                new_data_dict[key] = str(comboBox.getKeyByCurrentText())
+            elif key == 'value':
+                new_data_dict[key] = tableWidget.item(current_row, i).text()
+            elif key == 'category':
+                comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
+                new_data_dict[key] = str(comboBox.getKeyByCurrentText())
+            elif key == 'detail':
+                new_data_dict[key] = tableWidget.item(current_row, i).text()
+            elif key == 'describe':
+                new_data_dict[key] = tableWidget.item(current_row, i).text()
+            elif key == 'from':
+                comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
+                new_data_dict[key] = str(comboBox.getKeyByCurrentText())
+            elif key == 'to':
+                comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
+                new_data_dict[key] = str(comboBox.getKeyByCurrentText())
+            elif key == 'associatedFund':
+                comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
+                new_data_dict[key] = str(comboBox.getKeyByCurrentText())
+            else:
+                print("未知的记录属性！！: {}", format(key))
+                return None
+        return new_data_dict
+
     def updateExpenseTable(self, expenses_list):
         self.tableWidget_expense.setRowCount(0)
         self.tableWidget_expense.setRowCount(len(expenses_list)+1)
 
         current_row = 0
         for expense_dict in expenses_list:
-            self.tableWidget_expense.setItem(current_row, 0, QTableWidgetItem(str(expense_dict['necessity'])))
-            self.tableWidget_expense.setItem(current_row, 1, QTableWidgetItem(str(expense_dict['value'])))
-            self.tableWidget_expense.setItem(current_row, 2, QTableWidgetItem(str(expense_dict['category'])))
-            self.tableWidget_expense.setItem(current_row, 3, QTableWidgetItem(str(expense_dict['detail'])))
-            self.tableWidget_expense.setItem(current_row, 4, QTableWidgetItem(str(expense_dict['describe'])))
-            self.tableWidget_expense.setItem(current_row, 5, QTableWidgetItem(str(expense_dict['from'])))
-            self.tableWidget_expense.setItem(current_row, 6, QTableWidgetItem(str(expense_dict['associatedFund'])))
-            self.tableWidget_expense.setCellWidget(current_row, 7, self.buttonsForExistRow(self.tableWidget_expense))
+            self.setExistTableCell(self.tableWidget_expense, current_row, expense_dict, expenseConst)
             current_row += 1
 
-        self.tableWidget_expense.setItem(current_row, 4, QTableWidgetItem(' '))
-        self.tableWidget_expense.setCellWidget(current_row, 7, self.buttonsForNewRow(self.tableWidget_expense))
+        self.setBlankTableCell(self.tableWidget_expense, current_row, expenseConst)
 
     def updateIncomeTable(self, incomes_list):
         self.tableWidget_income.setRowCount(0)
@@ -95,17 +200,10 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
 
         current_row = 0
         for income_dict in incomes_list:
-            self.tableWidget_income.setItem(current_row, 0, QTableWidgetItem(str(income_dict['value'])))
-            self.tableWidget_income.setItem(current_row, 1, QTableWidgetItem(str(income_dict['category'])))
-            self.tableWidget_income.setItem(current_row, 2, QTableWidgetItem(str(income_dict['detail'])))
-            self.tableWidget_income.setItem(current_row, 3, QTableWidgetItem(str(income_dict['describe'])))
-            self.tableWidget_income.setItem(current_row, 4, QTableWidgetItem(str(income_dict['to'])))
-            self.tableWidget_income.setItem(current_row, 5, QTableWidgetItem(str(income_dict['associatedFund'])))
-            self.tableWidget_income.setCellWidget(current_row, 6, self.buttonsForExistRow(self.tableWidget_income))
+            self.setExistTableCell(self.tableWidget_income, current_row, income_dict, incomeConst)
             current_row += 1
 
-        self.tableWidget_income.setItem(current_row, 3, QTableWidgetItem(' '))
-        self.tableWidget_income.setCellWidget(current_row, 6, self.buttonsForNewRow(self.tableWidget_income))
+        self.setBlankTableCell(self.tableWidget_income, current_row, incomeConst)
 
     def updateMovementTable(self, movements_list):
         self.tableWidget_movement.setRowCount(0)
@@ -113,25 +211,19 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
 
         current_row = 0
         for movement_dict in movements_list:
-            self.tableWidget_movement.setItem(current_row, 0, QTableWidgetItem(str(movement_dict['value'])))
-            self.tableWidget_movement.setItem(current_row, 1, QTableWidgetItem(str(movement_dict['detail'])))
-            self.tableWidget_movement.setItem(current_row, 2, QTableWidgetItem(str(movement_dict['describe'])))
-            self.tableWidget_movement.setItem(current_row, 3, QTableWidgetItem(str(movement_dict['from'])))
-            self.tableWidget_movement.setItem(current_row, 4, QTableWidgetItem(str(movement_dict['to'])))
-            self.tableWidget_movement.setCellWidget(current_row, 5, self.buttonsForExistRow(self.tableWidget_movement))
+            self.setExistTableCell(self.tableWidget_movement, current_row, movement_dict, movementConst)
             current_row += 1
 
-        self.tableWidget_movement.setItem(current_row, 2, QTableWidgetItem(' '))
-        self.tableWidget_movement.setCellWidget(current_row, 5, self.buttonsForNewRow(self.tableWidget_movement))
+        self.setBlankTableCell(self.tableWidget_movement, current_row, movementConst)
 
     def buttonsForExistRow(self, tableWidget):
         widget = QWidget()
         # 更新
         updateBtn = QPushButton('更新')
-        updateBtn.clicked.connect(lambda: self.updateTableRow(tableWidget))
+        updateBtn.clicked.connect(lambda: self.updateTableRow(updateBtn, tableWidget))
         # 删除
         deleteBtn = QPushButton('删除')
-        deleteBtn.clicked.connect(lambda: self.deleteTableRow(tableWidget))
+        deleteBtn.clicked.connect(lambda: self.deleteTableRow(deleteBtn, tableWidget))
 
         hLayout = QHBoxLayout(widget)
         hLayout.addWidget(updateBtn)
@@ -150,49 +242,48 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         hLayout.setContentsMargins(5, 2, 5, 2)
         return widget
 
-    def updateTableRow(self, toggledBtn, tableWidget):
+    def updateTableRow(self, triggeredBtn, tableWidget):
         pass
 
-    def deleteTableRow(self, toggledBtn, tableWidget):
+    def deleteTableRow(self, triggeredBtn, tableWidget):
         pass
 
-    def newTableRow(self, toggledBtn, tableWidget):
+    def newTableRow(self, triggeredBtn, tableWidget):
         print('触发了新增按钮')
         # 获取触发信号的控件所在行号
-        row = tableWidget.indexAt(toggledBtn.parent().pos()).row()
-        new_data_dict = dict()
+        current_row = tableWidget.indexAt(triggeredBtn.parent().pos()).row()
         if tableWidget == self.tableWidget_expense:
-            current_column_head = TABLEWIDGET_EXPENSE_COLUMN_HEAD
+            const_class = expenseConst
         elif tableWidget == self.tableWidget_income:
-            current_column_head = TABLEWIDGET_INCOME_COLUMN_HEAD
+            const_class = incomeConst
         elif tableWidget == self.tableWidget_movement:
-            current_column_head = TABLEWIDGET_MOVEMENT_COLUMN_HEAD
+            const_class = movementConst
         else:
             print('未知控件触发新增按钮！')
             return
         # 用新增行数据构建字典
-        for i in range(tableWidget.columnCount()-1):
-            new_data_dict[current_column_head[tableWidget.horizontalHeaderItem(i).text()]] = tableWidget.item(row, i).text()
-        print(new_data_dict)
+        new_data_dict = self.getExistTableCell(tableWidget, current_row, const_class)
+        if new_data_dict is None:
+            print("获取新增数据失败！！")
+            return
+        print("新增记录内容为: \n", new_data_dict)
 
         # 插入新空行
         insert_pos = tableWidget.rowCount()
         tableWidget.insertRow(insert_pos)
-        # 新空行"操作"列初始化按钮
-        tableWidget.setCellWidget(insert_pos, tableWidget.columnCount()-1, self.buttonsForNewRow(tableWidget))
-        # 新增行"操作"列初始化按钮
+        # 新空行初始化
+        self.setBlankTableCell(tableWidget, insert_pos, const_class)
+        # 新增行"操作"列转换按钮
         tableWidget.setCellWidget(insert_pos-1, tableWidget.columnCount()-1, self.buttonsForExistRow(tableWidget))
 
+        # 用新增行的数据组织文件结构
         if tableWidget == self.tableWidget_expense:
-            # 将"描述"字段预置空格
-            tableWidget.setItem(insert_pos, 4, QTableWidgetItem(' '))
-            # 用新增行的数据组织文件结构
             self.file_processor.organizeExpense(new_data_dict, self.dateEdit.text().replace('/', ''))
         elif tableWidget == self.tableWidget_income:
-            tableWidget.setItem(insert_pos, 3, QTableWidgetItem(' '))
             self.file_processor.organizeIncome(new_data_dict, self.dateEdit.text().replace('/', ''))
         elif tableWidget == self.tableWidget_movement:
-            tableWidget.setItem(insert_pos, 2, QTableWidgetItem(' '))
             self.file_processor.organizeMovement(new_data_dict, self.dateEdit.text().replace('/', ''))
 
-        self.file_processor.writeXMLFile(self.cwd+'\\AccountBookXMLFile.xml')
+        write_file_path = os.path.normpath(self.lineEdit_file_path.text())
+        # print("输入框里的文件路径: ", write_file_path)
+        self.file_processor.writeXMLFile(write_file_path)

@@ -7,6 +7,7 @@
 from xml.etree import ElementTree as et
 import os
 from decimal import Decimal
+from collections import OrderedDict
 
 
 def pretty_xml(element, indent, newline='\n', level=0):  # elemnt为传进来的Elment类，参数indent用于缩进，newline用于换行
@@ -46,7 +47,8 @@ class AccountBookXMLProcessor:
         Returns:
             若找到指定日期的元素，则返回Element类型的day元素.
 
-            若未找到指定year，则返回int类型的0；若未找到指定month，则返回int类型的1；若未找到指定day，则返回int类型的2
+            若未找到指定year，则返回int类型的0；若未找到指定month，则返回int类型的1；若未找到指定day，则返回int类型的2。
+            int型返回值用于控制从何处开始初始化日期元素。
         """
         e_year = self.e_dailyAccountBook.find(".//year[@value='{}']".format(date_str[:4]))
         if e_year is None:
@@ -63,9 +65,12 @@ class AccountBookXMLProcessor:
         e_balance = self.e_dailyAccountBook.find(".//balance")
         balance_list = []
         for e_fund in list(e_balance):
-            balance_dict = {"value": float(e_fund.find('.//value').text),
-                            "category": int(e_fund.find('.//category').text),
-                            "fundName": e_fund.find('.//fundName').text}
+            # balance_dict = {"value": float(e_fund.find('.//value').text),
+            #                 "category": int(e_fund.find('.//category').text),
+            #                 "fundName": e_fund.find('.//fundName').text}
+            balance_dict = OrderedDict([("value", float(e_fund.find('.//value').text)),
+                                        ("category", int(e_fund.find('.//category').text)),
+                                        ("fundName", e_fund.find('.//fundName').text)])
             balance_list.append(balance_dict)
         return balance_list
 
@@ -102,49 +107,80 @@ class AccountBookXMLProcessor:
         return parse_dict
 
     def parseExpense(self, e_expense):
-        expense_dict = {
-            'necessity': True if (e_expense.attrib['necessity'].lower() == 'true') else False,
-            'value': float(e_expense.find('.//value').text),
-            'category': int(e_expense.find('.//category').text),
-            'detail': e_expense.find('.//detail').text,
-            'describe': e_expense.find('.//describe').text,
-            'from': int(e_expense.find('.//from').text),
-            'associatedFund': int(e_expense.attrib['associatedFund']) if (
-                    ('associatedFund' in e_expense.attrib) and e_expense.attrib['associatedFund'] != 'None') else None
-        }
+        # expense_dict = {
+        #     'necessity': True if (e_expense.attrib['necessity'].lower() == 'true') else False,
+        #     'value': float(e_expense.find('.//value').text),
+        #     'category': int(e_expense.find('.//category').text),
+        #     'detail': e_expense.find('.//detail').text,
+        #     'describe': e_expense.find('.//describe').text,
+        #     'from': int(e_expense.find('.//from').text),
+        #     'associatedFund': int(e_expense.attrib['associatedFund']) if (
+        #             ('associatedFund' in e_expense.attrib) and e_expense.attrib['associatedFund'] != 'None') else None
+        # }
+        expense_dict = OrderedDict([
+            ('necessity', e_expense.attrib['necessity']),
+            ('value', float(e_expense.find('.//value').text)),
+            ('category', int(e_expense.find('.//category').text)),
+            ('detail', e_expense.find('.//detail').text),
+            ('describe', e_expense.find('.//describe').text),
+            ('from', int(e_expense.find('.//from').text)),
+            ('associatedFund', int(e_expense.attrib['associatedFund']) if (
+                    ('associatedFund' in e_expense.attrib) and e_expense.attrib['associatedFund'] != 'None') else None)
+        ])
 
         return expense_dict
 
     def parseIncome(self, e_income):
-        income_dict = {
-            'associatedFund': int(e_income.attrib['associatedFund']) if (
-                    ('associatedFund' in e_income.attrib) and e_income.attrib['associatedFund'] != 'None') else None,
-            'value': float(e_income.find('.//value').text),
-            'category': int(e_income.find('.//category').text),
-            'detail': e_income.find('.//detail').text,
-            'describe': e_income.find('.//describe').text,
-            'to': int(e_income.find('.//to').text)
-        }
+        # income_dict = {
+        #     'associatedFund': int(e_income.attrib['associatedFund']) if (
+        #             ('associatedFund' in e_income.attrib) and e_income.attrib['associatedFund'] != 'None') else None,
+        #     'value': float(e_income.find('.//value').text),
+        #     'category': int(e_income.find('.//category').text),
+        #     'detail': e_income.find('.//detail').text,
+        #     'describe': e_income.find('.//describe').text,
+        #     'to': int(e_income.find('.//to').text)
+        # }
+        income_dict = OrderedDict([
+            ('value', float(e_income.find('.//value').text)),
+            ('category', int(e_income.find('.//category').text)),
+            ('detail', e_income.find('.//detail').text),
+            ('describe', e_income.find('.//describe').text),
+            ('to', int(e_income.find('.//to').text)),
+            ('associatedFund', int(e_income.attrib['associatedFund']) if (
+                    ('associatedFund' in e_income.attrib) and e_income.attrib['associatedFund'] != 'None') else None)
+        ])
 
         return income_dict
 
     def parseMovement(self, e_movement):
-        movement_dict = {
-            'value': float(e_movement.find('.//value').text),
-            'detail': e_movement.find('.//detail').text,
-            'describe': e_movement.find('.//describe').text,
-            'from': int(e_movement.find('.//from').text),
-            'to': int(e_movement.find('.//to').text)
-        }
+        # movement_dict = {
+        #     'value': float(e_movement.find('.//value').text),
+        #     'detail': e_movement.find('.//detail').text,
+        #     'describe': e_movement.find('.//describe').text,
+        #     'from': int(e_movement.find('.//from').text),
+        #     'to': int(e_movement.find('.//to').text)
+        # }
+        movement_dict = OrderedDict([
+            ('value', float(e_movement.find('.//value').text)),
+            ('detail', e_movement.find('.//detail').text),
+            ('describe', e_movement.find('.//describe').text),
+            ('from', int(e_movement.find('.//from').text)),
+            ('to', int(e_movement.find('.//to').text))
+        ])
 
         return movement_dict
 
     def parseVariation(self, e_fund):
-        fund_dict = {
-            'category': int(e_fund.find('.//category').text),
-            'out': float(e_fund.find('.//out').text),
-            'in': float(e_fund.find('.//in').text),
-        }
+        # fund_dict = {
+        #     'category': int(e_fund.find('.//category').text),
+        #     'out': float(e_fund.find('.//out').text),
+        #     'in': float(e_fund.find('.//in').text),
+        # }
+        fund_dict = ([
+            ('category', int(e_fund.find('.//category').text)),
+            ('out', float(e_fund.find('.//out').text)),
+            ('in', float(e_fund.find('.//in').text)),
+        ])
 
         return fund_dict
 
