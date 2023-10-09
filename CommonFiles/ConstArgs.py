@@ -7,7 +7,7 @@
 # @Dsc     : 定义所有公共常量
 
 # 基本需求
-NECESSITY = {'True': '基本', 'False': '过度', 'Unknown': '一般'}
+NECESSITY = {'True': '温饱', 'Unknown': '小康', 'False': '奢华'}
 
 
 # 支出相关的常量
@@ -34,7 +34,7 @@ class ExpenseConst:
         17: "杂项支出"
     }
     # 显示记录的表格表头
-    TABLEWIDGET_COLUMN_HEAD = {'基本需求': 'necessity', '数值': 'value', '类别': 'category', '细则': 'detail',
+    TABLEWIDGET_COLUMN_HEAD = {'需求强度': 'necessity', '数值': 'value', '类别': 'category', '细则': 'detail',
                                '描述': 'describe', '支出账户': 'from', '关联账户': 'associatedFund', '操作': ''}
 
 

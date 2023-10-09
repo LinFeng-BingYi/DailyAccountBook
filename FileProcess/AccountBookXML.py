@@ -10,7 +10,7 @@ from decimal import Decimal
 from collections import OrderedDict
 
 
-def pretty_xml(element, indent, newline='\n', level=0):  # elemnt为传进来的Elment类，参数indent用于缩进，newline用于换行
+def pretty_xml(element, indent='    ', newline='\n', level=0):  # elemnt为传进来的Elment类，参数indent用于缩进，newline用于换行
     if element:  # 判断element是否有子元素
         if (element.text is None) or element.text.isspace():  # 如果element的text没有内容
             element.text = newline + indent * (level + 1)
@@ -84,7 +84,6 @@ class AccountBookXMLProcessor:
         parse_dict = dict()
 
         for child_node in list(e_date):
-            print(child_node.tag)
             if child_node.tag == 'expenses':
                 e_expenses = e_date.find(".//expenses")
                 expenses_list = [self.parseExpense(e_expense) for e_expense in list(e_expenses)]
@@ -102,7 +101,7 @@ class AccountBookXMLProcessor:
                 variation_list = [self.parseVariation(e_fund) for e_fund in list(e_variation)]
                 parse_dict['variation'] = variation_list
             else:
-                print("未知类型的节点名")
+                print("解析day元素时，出现未知类型的节点名:", child_node.tag)
 
         return parse_dict
 
@@ -119,7 +118,7 @@ class AccountBookXMLProcessor:
         # }
         expense_dict = OrderedDict([
             ('necessity', e_expense.attrib['necessity']),
-            ('value', float(e_expense.find('.//value').text)),
+            ('value', Decimal(e_expense.find('.//value').text).quantize(Decimal('0.00'))),
             ('category', int(e_expense.find('.//category').text)),
             ('detail', e_expense.find('.//detail').text),
             ('describe', e_expense.find('.//describe').text),
@@ -127,6 +126,7 @@ class AccountBookXMLProcessor:
             ('associatedFund', int(e_expense.attrib['associatedFund']) if (
                     ('associatedFund' in e_expense.attrib) and e_expense.attrib['associatedFund'] != 'None') else None)
         ])
+        # print(expense_dict['value'])
 
         return expense_dict
 
@@ -141,7 +141,7 @@ class AccountBookXMLProcessor:
         #     'to': int(e_income.find('.//to').text)
         # }
         income_dict = OrderedDict([
-            ('value', float(e_income.find('.//value').text)),
+            ('value', Decimal(e_income.find('.//value').text).quantize(Decimal('0.00'))),
             ('category', int(e_income.find('.//category').text)),
             ('detail', e_income.find('.//detail').text),
             ('describe', e_income.find('.//describe').text),
@@ -161,7 +161,7 @@ class AccountBookXMLProcessor:
         #     'to': int(e_movement.find('.//to').text)
         # }
         movement_dict = OrderedDict([
-            ('value', float(e_movement.find('.//value').text)),
+            ('value', Decimal(e_movement.find('.//value').text).quantize(Decimal('0.00'))),
             ('detail', e_movement.find('.//detail').text),
             ('describe', e_movement.find('.//describe').text),
             ('from', int(e_movement.find('.//from').text)),
@@ -178,8 +178,8 @@ class AccountBookXMLProcessor:
         # }
         fund_dict = ([
             ('category', int(e_fund.find('.//category').text)),
-            ('out', float(e_fund.find('.//out').text)),
-            ('in', float(e_fund.find('.//in').text)),
+            ('out', Decimal(e_fund.find('.//out').text).quantize(Decimal('0.00'))),
+            ('in', Decimal(e_fund.find('.//in').text).quantize(Decimal('0.00'))),
         ])
 
         return fund_dict
@@ -228,7 +228,7 @@ class AccountBookXMLProcessor:
         for key, value in expense_dict.items():
             self.createChildElement(e_expense, key, value)
 
-        print(et.tostring(e_expenses, 'utf8'))
+        # print(et.tostring(e_expenses, 'utf8'))
 
     def organizeIncome(self, income_dict: dict, date_str):
         e_date = self.getSpecificDateElement(date_str)
@@ -303,8 +303,41 @@ class AccountBookXMLProcessor:
 
             self.organizeAssociatedFund(e_variation, change_dict, 'to')
 
+    def reversalVariation(self, change_dict, e_date):
+        """
+        Describe: 删除某条记录时，需要冲正原来的记录，将回退对应的存款账户数值变化、以及余额
+
+        Args:
+            change_dict: dict
+                记录字典
+            e_date: Element
+                指定日期的day元素
+        """
+        e_variation = e_date.find(".//variation")
+        if e_variation is None:
+            print("冲正记录时异常！！该记录不存在余额变化")
+            return
+        if 'from' in change_dict:
+            e_fund_variety = e_variation.find(".//fund[category='{}']/out".format(change_dict['from']))
+            if e_fund_variety is None:
+                print("冲正记录时异常！！该记录不存在余额变化")
+                return
+            e_fund_variety.text = str((Decimal(e_fund_variety.text) - Decimal(change_dict['value'])).quantize(Decimal('0.00')))
+            self.modifyBalance(change_dict['from'], Decimal(change_dict['value']))
+
+            self.reversalAssociatedFund(e_variation, change_dict, 'from')
+        if 'to' in change_dict:
+            e_fund_variety = e_variation.find(".//fund[category='{}']/in".format(change_dict['to']))
+            if e_fund_variety is None:
+                print("冲正记录时异常！！该记录不存在余额变化")
+                return
+            e_fund_variety.text = str((Decimal(e_fund_variety.text) - Decimal(change_dict['value'])).quantize(Decimal('0.00')))
+            self.modifyBalance(change_dict['to'], Decimal(change_dict['value'])*(-1))
+
+            self.reversalAssociatedFund(e_variation, change_dict, 'to')
+
     def organizeAssociatedFund(self, e_variation, change_dict, from_or_to):
-        print(change_dict['associatedFund'])
+        # print(change_dict['associatedFund'])
         if 'associatedFund' in change_dict and change_dict['associatedFund'] != 'None':
             print('执行了associatedFund，操作为', from_or_to)
             if e_variation.find(".//fund[category='{}']".format(change_dict['associatedFund'])) is None:
@@ -323,6 +356,113 @@ class AccountBookXMLProcessor:
                 return
             e_fund_variety.text = str((Decimal(e_fund_variety.text) + Decimal(change_dict['value'])).quantize(Decimal('0.00')))
             self.modifyBalance(change_dict['associatedFund'], Decimal(change_dict['value'])*flag)
+
+    def reversalAssociatedFund(self, e_variation, change_dict, from_or_to):
+        """
+        Describe: 冲正关联账户
+
+        Args:
+            e_variation: Element
+            change_dict: dict
+            from_or_to: ['from', 'to']
+        """
+        # print(change_dict['associatedFund'])
+        if 'associatedFund' in change_dict and change_dict['associatedFund'] != 'None':
+            print('执行了associatedFund冲正，操作为', from_or_to)
+            if e_variation.find(".//fund[category='{}']".format(change_dict['associatedFund'])) is None:
+                print("冲正记录时异常！！该记录不存在关联账户余额变化")
+                return
+            if from_or_to == 'from':
+                e_fund_variety = e_variation.find(".//fund[category='{}']/out".format(change_dict['associatedFund']))
+                flag = 1
+            elif from_or_to == 'to':
+                e_fund_variety = e_variation.find(".//fund[category='{}']/in".format(change_dict['associatedFund']))
+                flag = -1
+            else:
+                print('未知的收支动作！')
+                return
+            e_fund_variety.text = str((Decimal(e_fund_variety.text) - Decimal(change_dict['value'])).quantize(Decimal('0.00')))
+            self.modifyBalance(change_dict['associatedFund'], Decimal(change_dict['value'])*flag)
+
+    def deleteRecord(self, old_record_dict, date_str, action):
+        e_date = self.getSpecificDateElement(date_str)
+        if isinstance(e_date, int):
+            print("未找到这一天的数据！")
+            return False
+
+        if action == 'expense':
+            action_path = ".//expenses"
+            record_path = """.//expense[@necessity='{}'][@associatedFund='{}'][value='{}'][category='{}'][detail='{}'][describe='{}'][from='{}']""".format(
+                old_record_dict['necessity'],
+                old_record_dict['associatedFund'],
+                old_record_dict['value'],
+                old_record_dict['category'],
+                old_record_dict['detail'],
+                old_record_dict['describe'],
+                old_record_dict['from'])
+        elif action == 'income':
+            action_path = ".//incomes"
+            record_path = """.//income[@associatedFund='{}'][value='{}'][category='{}'][detail='{}'][describe='{}'][to='{}']""".format(
+                old_record_dict['associatedFund'],
+                old_record_dict['value'],
+                old_record_dict['category'],
+                old_record_dict['detail'],
+                old_record_dict['describe'],
+                old_record_dict['to'])
+        elif action == 'movement':
+            action_path = ".//movements"
+            record_path = """.//movement[value='{}'][detail='{}'][describe='{}'][from='{}'][to='{}']""".format(
+                old_record_dict['value'],
+                old_record_dict['detail'],
+                old_record_dict['describe'],
+                old_record_dict['from'],
+                old_record_dict['to'])
+        else:
+            print("未知的动账操作！！")
+            return False
+        print(record_path)
+
+        e_action = e_date.find(action_path)
+        e_record = e_action.find(record_path)
+        if e_record is None:
+            print("未找到待删除的记录")
+            return False
+        e_action.remove(e_record)
+
+        if action == 'movement':
+            self.modifyBalance(old_record_dict['from'], Decimal(old_record_dict['value']))
+            self.modifyBalance(old_record_dict['to'], Decimal(old_record_dict['value']) * (-1))
+        else:
+            self.reversalVariation(old_record_dict, e_date)
+        return True
+
+    def deleteExpense(self, old_record_dict, date_str):
+        e_date = self.getSpecificDateElement(date_str)
+        if isinstance(e_date, int):
+            print("未找到这一天的数据！")
+            return False
+
+        action_path = ".//expenses"
+        record_path = """.//expense[@necessity='{}'][@associatedFund='{}'][value='{}'][category='{}'][detail='{}'][describe='{}'][from='{}']""".format(
+            old_record_dict['necessity'],
+            old_record_dict['associatedFund'],
+            old_record_dict['value'],
+            old_record_dict['category'],
+            old_record_dict['detail'],
+            old_record_dict['describe'],
+            old_record_dict['from'])
+        print(record_path)
+
+        e_action = e_date.find(action_path)
+        e_record = e_action.find(record_path)
+        if e_record is not None:
+            e_action.remove(e_record)
+
+            self.modifyBalance()
+            return True
+        else:
+            print("未找到待删除的记录")
+            return False
 
     def writeXMLFile(self, file_path):
         print(file_path)

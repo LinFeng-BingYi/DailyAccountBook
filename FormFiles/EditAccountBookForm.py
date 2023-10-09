@@ -246,7 +246,38 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         pass
 
     def deleteTableRow(self, triggeredBtn, tableWidget):
-        pass
+        print("触发了删除按钮")
+        # 获取触发信号的控件所在行号
+        current_row = tableWidget.indexAt(triggeredBtn.parent().pos()).row()
+        if tableWidget == self.tableWidget_expense:
+            const_class = expenseConst
+            action = 'expense'
+        elif tableWidget == self.tableWidget_income:
+            const_class = incomeConst
+            action = 'income'
+        elif tableWidget == self.tableWidget_movement:
+            const_class = movementConst
+            action = 'movement'
+        else:
+            print('未知控件触发新增按钮！')
+            return
+        # 获取待删除行的数据
+        old_data_dict = self.getExistTableCell(tableWidget, current_row, const_class)
+        if old_data_dict is None:
+            print("获取待删除数据失败！！")
+            return
+        print("待删除记录内容为: \n", old_data_dict)
+
+        if self.file_processor.deleteRecord(old_data_dict, self.dateEdit.text().replace('/', ''), action):
+            print("删除成功！")
+            # 把删除结果写入文件
+            write_file_path = os.path.normpath(self.lineEdit_file_path.text())
+            # print("输入框里的文件路径: ", write_file_path)
+            self.file_processor.writeXMLFile(write_file_path)
+
+            # 更新self.file_parse_result以及记录表
+            self.responseSelectedDateChanging()
+
 
     def newTableRow(self, triggeredBtn, tableWidget):
         print('触发了新增按钮')
