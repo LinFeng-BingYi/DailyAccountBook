@@ -84,13 +84,25 @@ class Ui_EditAccountBook(object):
 
         self.horizontalLayout.addWidget(self.dateEdit)
 
+        self.pushButton_prev_day = QPushButton(self.widget_date)
+        self.pushButton_prev_day.setObjectName(u"pushButton_prev_day")
+        self.pushButton_prev_day.setMaximumSize(QSize(30, 30))
+
+        self.horizontalLayout.addWidget(self.pushButton_prev_day)
+
+        self.pushButton_post_day = QPushButton(self.widget_date)
+        self.pushButton_post_day.setObjectName(u"pushButton_post_day")
+        self.pushButton_post_day.setMaximumSize(QSize(30, 30))
+
+        self.horizontalLayout.addWidget(self.pushButton_post_day)
+
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
         self.horizontalLayout.setStretch(0, 1)
         self.horizontalLayout.setStretch(1, 1)
-        self.horizontalLayout.setStretch(2, 2)
+        self.horizontalLayout.setStretch(4, 2)
 
         self.verticalLayout_general.addWidget(self.widget_date)
 
@@ -226,6 +238,8 @@ class Ui_EditAccountBook(object):
         self.pushButton_file_path.setText(QCoreApplication.translate("EditAccountBook", u"\u6d4f\u89c8", None))
         self.label_date.setText(QCoreApplication.translate("EditAccountBook", u"\u65e5    \u671f", None))
         self.dateEdit.setDisplayFormat(QCoreApplication.translate("EditAccountBook", u"yyyy/MM/dd", None))
+        self.pushButton_prev_day.setText(QCoreApplication.translate("EditAccountBook", u"\u25c0", None))
+        self.pushButton_post_day.setText(QCoreApplication.translate("EditAccountBook", u"\u25b6", None))
         self.groupBox_expense.setTitle(QCoreApplication.translate("EditAccountBook", u"\u652f\u51fa", None))
         self.label_expense_table.setText(QCoreApplication.translate("EditAccountBook", u"\u652f\u51fa\u8bb0\u5f55", None))
         self.groupBox_income.setTitle(QCoreApplication.translate("EditAccountBook", u"\u6536\u5165", None))

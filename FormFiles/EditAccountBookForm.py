@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QFileDialog, QTableWidgetItem
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QFileDialog, QTableWidgetItem, QDoubleSpinBox
 from PySide6.QtCore import Qt, QDate
 
 from CustomWidgets import ComboBoxInTableWidget
@@ -25,6 +25,7 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.tableWidget_movement.setHorizontalHeaderLabels(list(movementConst.TABLEWIDGET_COLUMN_HEAD))
 
         self.cwd = os.getcwd()              # 程序当前工作目录
+        print(self.cwd)
         self.file_processor: AccountBookXMLProcessor = None          # 收支记录文件读写器
         self.file_parse_result = dict()     # 收支记录文件解析结果
 
@@ -37,6 +38,8 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.pushButton_file_path.clicked.connect(self.chooseFile)
         self.lineEdit_file_path.cursorPositionChanged.connect(self.responseSelectedDateChanging)
         self.dateEdit.dateChanged.connect(self.responseSelectedDateChanging)
+        self.pushButton_prev_day.clicked.connect(lambda: self.dateEdit.setDate(self.dateEdit.date().addDays(-1)))
+        self.pushButton_post_day.clicked.connect(lambda: self.dateEdit.setDate(self.dateEdit.date().addDays(1)))
         self.groupBox_expense.clicked.connect(lambda: self.widget_expense.setVisible(not self.widget_expense.isVisible()))
         self.groupBox_income.clicked.connect(lambda: self.widget_income.setVisible(not self.widget_income.isVisible()))
         self.groupBox_movement.clicked.connect(lambda: self.widget_movement.setVisible(not self.widget_movement.isVisible()))
@@ -45,8 +48,9 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.dateEdit.setDate(QDate.currentDate())
 
     def chooseFile(self):
-        chosen_file, file_type = QFileDialog.getOpenFileName(self, "选择文件", self.cwd, "All Files(*);;XML Files(*.xml)")
-        self.lineEdit_file_path.setText(chosen_file)
+        chosen_file, file_type = QFileDialog.getOpenFileName(self, "选择文件", self.cwd+"\\resources", "All Files(*);;XML Files(*.xml)")
+        norm_file_path = os.path.normpath(chosen_file)
+        self.lineEdit_file_path.setText(norm_file_path)
 
     def responseSelectedDateChanging(self):
         if not self.lineEdit_file_path.text():
@@ -54,7 +58,7 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
             return
         self.file_processor = AccountBookXMLProcessor(self.lineEdit_file_path.text())
         self.file_parse_result = self.file_processor.parseSpecificDateElement(self.dateEdit.text().replace('/', ''))
-        print(self.file_parse_result)
+        print("文件解析内容: ", self.file_parse_result)
         if self.file_parse_result is None:
             self.file_parse_result = {}
 
@@ -91,7 +95,12 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
                 comboBox = ComboBoxInTableWidget(NECESSITY, value)
                 tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
             elif key == 'value':
-                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(str(value)))
+                # tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(str(value)))
+                spinBox = QDoubleSpinBox(decimals=2)
+                spinBox.setRange(0.0, 100000000.0)
+                spinBox.setSingleStep(0.1)
+                spinBox.setValue(value)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), spinBox)
             elif key == 'category':
                 comboBox = ComboBoxInTableWidget(const_class.CATEGORY, value)
                 tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
@@ -131,7 +140,12 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
                 comboBox = ComboBoxInTableWidget(NECESSITY, 'True')
                 tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
             elif key == 'value':
-                tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(''))
+                # tableWidget.setItem(current_row, keys_list.index(key), QTableWidgetItem(str(value)))
+                spinBox = QDoubleSpinBox(decimals=2)
+                spinBox.setRange(0.0, 100000000.0)
+                spinBox.setSingleStep(0.1)
+                spinBox.setValue(0.0)
+                tableWidget.setCellWidget(current_row, keys_list.index(key), spinBox)
             elif key == 'category':
                 comboBox = ComboBoxInTableWidget(const_class.CATEGORY, 0)
                 tableWidget.setCellWidget(current_row, keys_list.index(key), comboBox)
@@ -161,7 +175,8 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
                 comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
                 new_data_dict[key] = str(comboBox.getKeyByCurrentText())
             elif key == 'value':
-                new_data_dict[key] = tableWidget.item(current_row, i).text()
+                spinBox: QDoubleSpinBox = tableWidget.cellWidget(current_row, i)
+                new_data_dict[key] = "{:.2f}".format(spinBox.value())
             elif key == 'category':
                 comboBox: ComboBoxInTableWidget = tableWidget.cellWidget(current_row, i)
                 new_data_dict[key] = str(comboBox.getKeyByCurrentText())
@@ -243,7 +258,39 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         return widget
 
     def updateTableRow(self, triggeredBtn, tableWidget):
-        pass
+        print("触发了新增按钮")
+        # 获取触发信号的控件所在行号
+        current_row = tableWidget.indexAt(triggeredBtn.parent().pos()).row()
+        if tableWidget == self.tableWidget_expense:
+            const_class = expenseConst
+            action = 'expense'
+        elif tableWidget == self.tableWidget_income:
+            const_class = incomeConst
+            action = 'income'
+        elif tableWidget == self.tableWidget_movement:
+            const_class = movementConst
+            action = 'movement'
+        else:
+            print('未知控件触发新增按钮！')
+            return
+        # 获取被更新的旧数据(文件解析后，记录顺序与表格顺序相同)
+        old_data_dict = self.file_parse_result[action+'s'][current_row]
+        print("旧记录内容为: \n", old_data_dict)
+        # 获取更新后的新数据
+        new_data_dict = self.getExistTableCell(tableWidget, current_row, const_class)
+        if new_data_dict is None:
+            print("获取更新后的数据失败！！")
+            return
+        print("更新后的记录内容为: \n", new_data_dict)
+
+        if self.file_processor.updateRecord(old_data_dict, new_data_dict, self.dateEdit.text().replace('/', ''), action):
+            print("更新成功！")
+            # 把删除结果写入文件
+            self.file_processor.writeXMLFile(self.lineEdit_file_path.text())
+
+            # 更新self.file_parse_result
+            self.file_parse_result[action+'s'][current_row] = new_data_dict
+            # print(self.file_parse_result)
 
     def deleteTableRow(self, triggeredBtn, tableWidget):
         print("触发了删除按钮")
@@ -271,13 +318,10 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         if self.file_processor.deleteRecord(old_data_dict, self.dateEdit.text().replace('/', ''), action):
             print("删除成功！")
             # 把删除结果写入文件
-            write_file_path = os.path.normpath(self.lineEdit_file_path.text())
-            # print("输入框里的文件路径: ", write_file_path)
-            self.file_processor.writeXMLFile(write_file_path)
+            self.file_processor.writeXMLFile(self.lineEdit_file_path.text())
 
             # 更新self.file_parse_result以及记录表
             self.responseSelectedDateChanging()
-
 
     def newTableRow(self, triggeredBtn, tableWidget):
         print('触发了新增按钮')
@@ -310,11 +354,12 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         # 用新增行的数据组织文件结构
         if tableWidget == self.tableWidget_expense:
             self.file_processor.organizeExpense(new_data_dict, self.dateEdit.text().replace('/', ''))
+            self.file_parse_result['expenses'].append(new_data_dict)
         elif tableWidget == self.tableWidget_income:
             self.file_processor.organizeIncome(new_data_dict, self.dateEdit.text().replace('/', ''))
+            self.file_parse_result['incomes'].append(new_data_dict)
         elif tableWidget == self.tableWidget_movement:
             self.file_processor.organizeMovement(new_data_dict, self.dateEdit.text().replace('/', ''))
+            self.file_parse_result['movements'].append(new_data_dict)
 
-        write_file_path = os.path.normpath(self.lineEdit_file_path.text())
-        # print("输入框里的文件路径: ", write_file_path)
-        self.file_processor.writeXMLFile(write_file_path)
+        self.file_processor.writeXMLFile(self.lineEdit_file_path.text())

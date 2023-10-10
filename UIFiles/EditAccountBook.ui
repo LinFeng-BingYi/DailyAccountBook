@@ -109,7 +109,7 @@
       </item>
       <item>
        <widget class="QWidget" name="widget_date" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,2">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,0,0,2">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -160,6 +160,32 @@
            </property>
            <property name="timeSpec">
             <enum>Qt::LocalTime</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_prev_day">
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>◀</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_post_day">
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>▶</string>
            </property>
           </widget>
          </item>
