@@ -71,9 +71,9 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         if 'variation' not in self.file_parse_result:
             self.file_parse_result['variation'] = []
 
-        self.updateExpenseTable(self.file_parse_result['expenses'])
-        self.updateIncomeTable(self.file_parse_result['incomes'])
-        self.updateMovementTable(self.file_parse_result['movements'])
+        self.updateRecordTable(self.tableWidget_expense, self.file_parse_result['expenses'], expenseConst)
+        self.updateRecordTable(self.tableWidget_income, self.file_parse_result['incomes'], incomeConst)
+        self.updateRecordTable(self.tableWidget_movement, self.file_parse_result['movements'], movementConst)
 
     def setExistTableCell(self, tableWidget, current_row, value_dict: dict, const_class):
         """
@@ -198,38 +198,24 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
                 return None
         return new_data_dict
 
-    def updateExpenseTable(self, expenses_list):
-        self.tableWidget_expense.setRowCount(0)
-        self.tableWidget_expense.setRowCount(len(expenses_list)+1)
+    def updateRecordTable(self, tableWidget, records_list, const_class):
+        """
+        Describe: 用记录列表更新表格
+
+        Args:
+            tableWidget: QTableWidget
+            records_list: list[dict]
+            const_class: Union[ExpenseConst, IncomeConst, MovementConst]
+        """
+        tableWidget.setRowCount(0)
+        tableWidget.setRowCount(len(records_list) + 1)
 
         current_row = 0
-        for expense_dict in expenses_list:
-            self.setExistTableCell(self.tableWidget_expense, current_row, expense_dict, expenseConst)
+        for record_dict in records_list:
+            self.setExistTableCell(tableWidget, current_row, record_dict, const_class)
             current_row += 1
 
-        self.setBlankTableCell(self.tableWidget_expense, current_row, expenseConst)
-
-    def updateIncomeTable(self, incomes_list):
-        self.tableWidget_income.setRowCount(0)
-        self.tableWidget_income.setRowCount(len(incomes_list)+1)
-
-        current_row = 0
-        for income_dict in incomes_list:
-            self.setExistTableCell(self.tableWidget_income, current_row, income_dict, incomeConst)
-            current_row += 1
-
-        self.setBlankTableCell(self.tableWidget_income, current_row, incomeConst)
-
-    def updateMovementTable(self, movements_list):
-        self.tableWidget_movement.setRowCount(0)
-        self.tableWidget_movement.setRowCount(len(movements_list)+1)
-
-        current_row = 0
-        for movement_dict in movements_list:
-            self.setExistTableCell(self.tableWidget_movement, current_row, movement_dict, movementConst)
-            current_row += 1
-
-        self.setBlankTableCell(self.tableWidget_movement, current_row, movementConst)
+        self.setBlankTableCell(tableWidget, current_row, const_class)
 
     def buttonsForExistRow(self, tableWidget):
         widget = QWidget()
@@ -321,7 +307,9 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
             self.file_processor.writeXMLFile(self.lineEdit_file_path.text())
 
             # 更新self.file_parse_result以及记录表
-            self.responseSelectedDateChanging()
+            records_list = self.file_parse_result[action + 's']
+            records_list.pop(current_row)
+            self.updateRecordTable(tableWidget, records_list, const_class)
 
     def newTableRow(self, triggeredBtn, tableWidget):
         print('触发了新增按钮')
