@@ -7,4 +7,4 @@ https://www.cnblogs.com/LinfengBingyi/category/2344077.html
 
 -------------
 如果你得到启发或学到技术，可以打赏支持一下 ^_^  
-![微信赞赏码.png](resources/微信赞赏码.png)
+![微信赞赏码](resources/微信赞赏码.png)

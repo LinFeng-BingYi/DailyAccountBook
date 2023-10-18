@@ -17,12 +17,6 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
     def __init__(self):
         super(WidgetEditAccountBook, self).__init__()
         self.setupUi(self)
-        self.tableWidget_expense.setColumnCount(len(expenseConst.TABLEWIDGET_COLUMN_HEAD))
-        self.tableWidget_expense.setHorizontalHeaderLabels(list(expenseConst.TABLEWIDGET_COLUMN_HEAD))
-        self.tableWidget_income.setColumnCount(len(incomeConst.TABLEWIDGET_COLUMN_HEAD))
-        self.tableWidget_income.setHorizontalHeaderLabels(list(incomeConst.TABLEWIDGET_COLUMN_HEAD))
-        self.tableWidget_movement.setColumnCount(len(movementConst.TABLEWIDGET_COLUMN_HEAD))
-        self.tableWidget_movement.setHorizontalHeaderLabels(list(movementConst.TABLEWIDGET_COLUMN_HEAD))
 
         self.cwd = os.getcwd()              # 程序当前工作目录
         print(self.cwd)
@@ -34,6 +28,17 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
 
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
+    def initWidgets(self):
+        # 设置初始日期为系统时间
+        self.dateEdit.setDate(QDate.currentDate())
+        # 设置记录表头
+        self.tableWidget_expense.setColumnCount(len(expenseConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_expense.setHorizontalHeaderLabels(list(expenseConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_income.setColumnCount(len(incomeConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_income.setHorizontalHeaderLabels(list(incomeConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_movement.setColumnCount(len(movementConst.TABLEWIDGET_COLUMN_HEAD))
+        self.tableWidget_movement.setHorizontalHeaderLabels(list(movementConst.TABLEWIDGET_COLUMN_HEAD))
+
     def bindSignal(self):
         self.pushButton_file_path.clicked.connect(self.chooseFile)
         self.lineEdit_file_path.cursorPositionChanged.connect(self.responseSelectedDateChanging)
@@ -44,17 +49,20 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.groupBox_income.clicked.connect(lambda: self.widget_income.setVisible(not self.widget_income.isVisible()))
         self.groupBox_movement.clicked.connect(lambda: self.widget_movement.setVisible(not self.widget_movement.isVisible()))
 
-    def initWidgets(self):
-        self.dateEdit.setDate(QDate.currentDate())
-
     def chooseFile(self):
         chosen_file, file_type = QFileDialog.getOpenFileName(self, "选择文件", self.cwd+"\\resources", "All Files(*);;XML Files(*.xml)")
         norm_file_path = os.path.normpath(chosen_file)
+        if norm_file_path == '.':
+            print("未选择正确的文件！！")
+            return
         self.lineEdit_file_path.setText(norm_file_path)
 
     def responseSelectedDateChanging(self):
         if not self.lineEdit_file_path.text():
             print("还未选择文件！")
+            return
+        if ".xml" != self.lineEdit_file_path.text()[-4:]:
+            print("请选择XML文件！！")
             return
         self.file_processor = AccountBookXMLProcessor(self.lineEdit_file_path.text())
         self.file_parse_result = self.file_processor.parseSpecificDateElement(self.dateEdit.text().replace('/', ''))

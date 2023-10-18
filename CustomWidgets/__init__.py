@@ -6,4 +6,8 @@
 # @Time    : 2023/10/6 20:10
 # @Dsc     : 将自定义控件放入__init__.py文件，方便使用
 
+# ComboBox
 from .ComboBox import ComboBoxInTableWidget
+
+# TabWidget
+from .TabWidget import FormTabBar, QTabWidget
