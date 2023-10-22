@@ -57,7 +57,7 @@
         </property>
         <widget class="QWidget" name="tab_statistic">
          <attribute name="title">
-          <string>统计</string>
+          <string>总额统计</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_statistic_top">
           <property name="leftMargin">
@@ -226,8 +226,15 @@
                    </item>
                    <item row="0" column="1">
                     <widget class="QLabel" name="label_expense_sum_value">
+                     <property name="font">
+                      <font>
+                       <family>Magneto</family>
+                       <pointsize>20</pointsize>
+                       <bold>true</bold>
+                      </font>
+                     </property>
                      <property name="text">
-                      <string>0.00</string>
+                      <string>123456789.00</string>
                      </property>
                     </widget>
                    </item>
@@ -249,8 +256,15 @@
                    </item>
                    <item row="1" column="1">
                     <widget class="QLabel" name="label_income_sum_value">
+                     <property name="font">
+                      <font>
+                       <family>Magneto</family>
+                       <pointsize>20</pointsize>
+                       <bold>true</bold>
+                      </font>
+                     </property>
                      <property name="text">
-                      <string>0.00</string>
+                      <string>123456789.00</string>
                      </property>
                     </widget>
                    </item>
@@ -272,8 +286,15 @@
                    </item>
                    <item row="2" column="1">
                     <widget class="QLabel" name="label_net_income_sum_value">
+                     <property name="font">
+                      <font>
+                       <family>Magneto</family>
+                       <pointsize>20</pointsize>
+                       <bold>true</bold>
+                      </font>
+                     </property>
                      <property name="text">
-                      <string>0.00</string>
+                      <string>123456789.00</string>
                      </property>
                     </widget>
                    </item>
@@ -295,8 +316,15 @@
                    </item>
                    <item row="3" column="1">
                     <widget class="QLabel" name="label_total_assets_sum_value">
+                     <property name="font">
+                      <font>
+                       <family>Magneto</family>
+                       <pointsize>20</pointsize>
+                       <bold>true</bold>
+                      </font>
+                     </property>
                      <property name="text">
-                      <string>0.00</string>
+                      <string>123456789.00</string>
                      </property>
                     </widget>
                    </item>
@@ -339,7 +367,7 @@
                       <number>0</number>
                      </property>
                      <property name="columnCount">
-                      <number>4</number>
+                      <number>0</number>
                      </property>
                      <attribute name="horizontalHeaderVisible">
                       <bool>true</bool>
@@ -347,26 +375,6 @@
                      <attribute name="verticalHeaderVisible">
                       <bool>true</bool>
                      </attribute>
-                     <column>
-                      <property name="text">
-                       <string>账户</string>
-                      </property>
-                     </column>
-                     <column>
-                      <property name="text">
-                       <string>余额</string>
-                      </property>
-                     </column>
-                     <column>
-                      <property name="text">
-                       <string>支出</string>
-                      </property>
-                     </column>
-                     <column>
-                      <property name="text">
-                       <string>收入</string>
-                      </property>
-                     </column>
                     </widget>
                    </item>
                   </layout>
@@ -648,7 +656,7 @@
           </size>
          </property>
          <attribute name="title">
-          <string>饼图</string>
+          <string>收支结构</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_pie_top">
           <property name="leftMargin">

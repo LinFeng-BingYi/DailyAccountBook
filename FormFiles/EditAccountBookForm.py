@@ -31,6 +31,9 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
     def initWidgets(self):
         # 设置初始日期为系统时间
         self.dateEdit.setDate(QDate.currentDate())
+        # 默认账本路径
+        self.lineEdit_file_path.setText(commonConst.ACCOUNT_BOOK_PATH)
+        self.responseSelectedDateChanging()
         # 设置记录表头
         self.tableWidget_expense.setColumnCount(len(expenseConst.TABLEWIDGET_COLUMN_HEAD))
         self.tableWidget_expense.setHorizontalHeaderLabels(list(expenseConst.TABLEWIDGET_COLUMN_HEAD))
@@ -59,7 +62,7 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
 
     def responseSelectedDateChanging(self):
         if not self.lineEdit_file_path.text():
-            print("还未选择文件！")
+            print("还未选择文件！!")
             return
         if ".xml" != self.lineEdit_file_path.text()[-4:]:
             print("请选择XML文件！！")

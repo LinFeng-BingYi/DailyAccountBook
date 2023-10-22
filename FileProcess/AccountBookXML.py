@@ -8,9 +8,11 @@ from xml.etree import ElementTree as et
 import os
 from decimal import Decimal
 from collections import OrderedDict
+from datetime import datetime
+import pandas as pd
 
 
-def pretty_xml(element, indent='    ', newline='\n', level=0):  # elemnt为传进来的Elment类，参数indent用于缩进，newline用于换行
+def pretty_xml(element, indent='    ', newline='\n', level=0):  # element为传进来的Element类，参数indent用于缩进，newline用于换行
     if element:  # 判断element是否有子元素
         if (element.text is None) or element.text.isspace():  # 如果element的text没有内容
             element.text = newline + indent * (level + 1)
@@ -26,10 +28,12 @@ def pretty_xml(element, indent='    ', newline='\n', level=0):  # elemnt为传�
             sub_element.tail = newline + indent * level
         pretty_xml(sub_element, indent, newline, level=level + 1)  # 对子元素进行递归操作
 
+
 class AccountBookXMLProcessor:
 
     def __init__(self, file_path):
         if os.path.exists(file_path):
+            # print(file_path)
             self.xml_tree = et.parse(file_path)
             self.e_dailyAccountBook = self.xml_tree.getroot()
         else:
@@ -70,7 +74,8 @@ class AccountBookXMLProcessor:
             #                 "fundName": e_fund.find('.//fundName').text}
             balance_dict = OrderedDict([("value", float(e_fund.find('.//value').text)),
                                         ("category", int(e_fund.find('.//category').text)),
-                                        ("fundName", e_fund.find('.//fundName').text)])
+                                        ("fundName", e_fund.find('.//fundName').text),
+                                        ("ignore", True if e_fund.find('.//ignore').text.lower() == 'true' else False)])
             balance_list.append(balance_dict)
         return balance_list
 
@@ -176,7 +181,7 @@ class AccountBookXMLProcessor:
         #     'out': float(e_fund.find('.//out').text),
         #     'in': float(e_fund.find('.//in').text),
         # }
-        fund_dict = ([
+        fund_dict = OrderedDict([
             ('category', int(e_fund.find('.//category').text)),
             ('out', Decimal(e_fund.find('.//out').text).quantize(Decimal('0.00'))),
             ('in', Decimal(e_fund.find('.//in').text).quantize(Decimal('0.00'))),
@@ -480,7 +485,7 @@ class AccountBookXMLProcessor:
             return False
 
         # 修改了数值则需要冲正
-        if old_record_dict['value'] != new_record_dict['value']:
+        if Decimal(old_record_dict['value']) != Decimal(new_record_dict['value']):
             # 先冲正原记录数据
             # 在用新数据修改账户变化和余额
             if action == 'movement':
@@ -507,3 +512,68 @@ class AccountBookXMLProcessor:
         # print(file_path)
         pretty_xml(self.e_dailyAccountBook, '    ', '\n')
         self.xml_tree.write(file_path, encoding='utf-8', xml_declaration=True)
+
+    def getWholeYearRecord(self, year):
+        """
+        Describe: 获取某一年全年的动账记录
+
+        Args:
+            year: str
+                年份的四位数字符串，格式为"yyyy"
+
+        Returns: tuple[pandas.Dataframe]
+            一个四元元组，按顺序表示支出、收入、移动、账户余额变动记录。
+            df_expense的列名如下：[date, necessity, value, category, detail, describe, from, associatedFund]
+            df_income的列名如下：[date, value, category, detail, describe, to, associatedFund]
+            df_movement的列名如下：[date, value, detail, describe, from, to]
+            df_variation的列名如下：[date, category, out, in]
+        """
+        e_year = self.e_dailyAccountBook.find(".//year[@value='{}']".format(year))
+        if e_year is None:
+            print(f"该年[{year}]没有动账记录!")
+            return None
+        df_expense = pd.DataFrame(columns=['date', 'necessity', 'value', 'category', 'detail', 'describe', 'from', 'associatedFund'])
+        df_income = pd.DataFrame(columns=['date', 'value', 'category', 'detail', 'describe', 'to', 'associatedFund'])
+        df_movement = pd.DataFrame(columns=['date', 'value', 'detail', 'describe', 'from', 'to'])
+        df_variation = pd.DataFrame(columns=['date', 'category', 'out', 'in'])
+        for e_month in list(e_year):
+            for e_day in list(e_month):
+                date_str = year + e_month.attrib['value'] + e_day.attrib['value']
+                current_parse_dict = self.parseSpecificDateElement(date_str)
+                if 'expenses' in current_parse_dict.keys():
+                    record_list = current_parse_dict['expenses']
+                    for record in record_list:
+                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
+                        df_expense = df_expense._append(record, ignore_index=True)
+                if 'incomes' in current_parse_dict.keys():
+                    record_list = current_parse_dict['incomes']
+                    for record in record_list:
+                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
+                        df_income = df_income._append(record, ignore_index=True)
+                if 'movements' in current_parse_dict.keys():
+                    record_list = current_parse_dict['movements']
+                    for record in record_list:
+                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
+                        df_movement = df_movement._append(record, ignore_index=True)
+                if 'variation' in current_parse_dict.keys():
+                    record_list = current_parse_dict['variation']
+                    for record in record_list:
+                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
+                        df_variation = df_variation._append(record, ignore_index=True)
+        # # 显示所有列
+        # pd.set_option('display.max_columns', None)
+        # # 显示所有行
+        # pd.set_option('display.max_rows', None)
+        # # 设置value的显示长度为100，默认为50
+        # pd.set_option('display.max_colwidth', 1000)
+        # # 字段较多时不换行显示
+        # pd.set_option('display.width', 1000)
+        # # 对齐显示
+        # pd.set_option('display.unicode.ambiguous_as_wide', True)
+        # pd.set_option('display.unicode.east_asian_width', True)
+        # print(df_expense)
+        # print(df_income)
+        # print(df_movement)
+        # print(df_variation)
+
+        return df_expense, df_income, df_movement, df_variation

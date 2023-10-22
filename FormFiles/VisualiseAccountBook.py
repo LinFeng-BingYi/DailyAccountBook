@@ -109,6 +109,11 @@ class Ui_VisualiseAccountBook(object):
 
         self.label_expense_sum_value = QLabel(self.widget_value_sum)
         self.label_expense_sum_value.setObjectName(u"label_expense_sum_value")
+        font = QFont()
+        font.setFamilies([u"Magneto"])
+        font.setPointSize(20)
+        font.setBold(True)
+        self.label_expense_sum_value.setFont(font)
 
         self.gridLayout_value_sum.addWidget(self.label_expense_sum_value, 0, 1, 1, 1)
 
@@ -121,6 +126,7 @@ class Ui_VisualiseAccountBook(object):
 
         self.label_income_sum_value = QLabel(self.widget_value_sum)
         self.label_income_sum_value.setObjectName(u"label_income_sum_value")
+        self.label_income_sum_value.setFont(font)
 
         self.gridLayout_value_sum.addWidget(self.label_income_sum_value, 1, 1, 1, 1)
 
@@ -133,6 +139,7 @@ class Ui_VisualiseAccountBook(object):
 
         self.label_net_income_sum_value = QLabel(self.widget_value_sum)
         self.label_net_income_sum_value.setObjectName(u"label_net_income_sum_value")
+        self.label_net_income_sum_value.setFont(font)
 
         self.gridLayout_value_sum.addWidget(self.label_net_income_sum_value, 2, 1, 1, 1)
 
@@ -145,6 +152,7 @@ class Ui_VisualiseAccountBook(object):
 
         self.label_total_assets_sum_value = QLabel(self.widget_value_sum)
         self.label_total_assets_sum_value.setObjectName(u"label_total_assets_sum_value")
+        self.label_total_assets_sum_value.setFont(font)
 
         self.gridLayout_value_sum.addWidget(self.label_total_assets_sum_value, 3, 1, 1, 1)
 
@@ -160,23 +168,13 @@ class Ui_VisualiseAccountBook(object):
         self.verticalLayout_fund_sum.setObjectName(u"verticalLayout_fund_sum")
         self.verticalLayout_fund_sum.setContentsMargins(2, 2, 2, 2)
         self.tableWidget_fund_sum = QTableWidget(self.widget_fund_sum)
-        if (self.tableWidget_fund_sum.columnCount() < 4):
-            self.tableWidget_fund_sum.setColumnCount(4)
-        __qtablewidgetitem = QTableWidgetItem()
-        self.tableWidget_fund_sum.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        __qtablewidgetitem1 = QTableWidgetItem()
-        self.tableWidget_fund_sum.setHorizontalHeaderItem(1, __qtablewidgetitem1)
-        __qtablewidgetitem2 = QTableWidgetItem()
-        self.tableWidget_fund_sum.setHorizontalHeaderItem(2, __qtablewidgetitem2)
-        __qtablewidgetitem3 = QTableWidgetItem()
-        self.tableWidget_fund_sum.setHorizontalHeaderItem(3, __qtablewidgetitem3)
         self.tableWidget_fund_sum.setObjectName(u"tableWidget_fund_sum")
         self.tableWidget_fund_sum.setFrameShadow(QFrame.Plain)
         self.tableWidget_fund_sum.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableWidget_fund_sum.setAlternatingRowColors(True)
         self.tableWidget_fund_sum.setSortingEnabled(True)
         self.tableWidget_fund_sum.setRowCount(0)
-        self.tableWidget_fund_sum.setColumnCount(4)
+        self.tableWidget_fund_sum.setColumnCount(0)
         self.tableWidget_fund_sum.horizontalHeader().setVisible(True)
         self.tableWidget_fund_sum.verticalHeader().setVisible(True)
 
@@ -366,9 +364,9 @@ class Ui_VisualiseAccountBook(object):
 
         self.label_current_range_pie = QLabel(self.widget_pie_control_bar)
         self.label_current_range_pie.setObjectName(u"label_current_range_pie")
-        font = QFont()
-        font.setPointSize(15)
-        self.label_current_range_pie.setFont(font)
+        font1 = QFont()
+        font1.setPointSize(15)
+        self.label_current_range_pie.setFont(font1)
         self.label_current_range_pie.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout_pie_control_bar.addWidget(self.label_current_range_pie)
@@ -542,21 +540,13 @@ class Ui_VisualiseAccountBook(object):
         self.label_start_date.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u8d77\u59cb\u65e5\u671f", None))
         self.label_end_date.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u7ed3\u675f\u65e5\u671f", None))
         self.label_expense_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u652f\u51fa", None))
-        self.label_expense_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"0.00", None))
+        self.label_expense_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"123456789.00", None))
         self.label_income_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u5165", None))
-        self.label_income_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"0.00", None))
+        self.label_income_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"123456789.00", None))
         self.label_net_income_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u51c0\u6536\u5165", None))
-        self.label_net_income_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"0.00", None))
+        self.label_net_income_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"123456789.00", None))
         self.label_total_assets_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u8d44\u4ea7", None))
-        self.label_total_assets_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"0.00", None))
-        ___qtablewidgetitem = self.tableWidget_fund_sum.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u8d26\u6237", None));
-        ___qtablewidgetitem1 = self.tableWidget_fund_sum.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u4f59\u989d", None));
-        ___qtablewidgetitem2 = self.tableWidget_fund_sum.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u652f\u51fa", None));
-        ___qtablewidgetitem3 = self.tableWidget_fund_sum.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u5165", None));
+        self.label_total_assets_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"123456789.00", None))
         self.groupBox_time_scale.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u65f6\u95f4\u5c3a\u5ea6", None))
         self.radioButton_year_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u5e74\u4efd", None))
         self.radioButton_month_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6708\u4efd", None))
@@ -571,7 +561,7 @@ class Ui_VisualiseAccountBook(object):
         self.checkBox_income.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u5165", None))
         self.checkBox_total_assets.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u8d44\u4ea7", None))
         self.pushButton_expand_config_area.setText(QCoreApplication.translate("VisualiseAccountBook", u">", None))
-        self.tabWidget_general.setTabText(self.tabWidget_general.indexOf(self.tab_statistic), QCoreApplication.translate("VisualiseAccountBook", u"\u7edf\u8ba1", None))
+        self.tabWidget_general.setTabText(self.tabWidget_general.indexOf(self.tab_statistic), QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u989d\u7edf\u8ba1", None))
         self.pushButton_prev_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"<", None))
         self.label_current_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"2023/10/18", None))
         self.pushButton_post_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u">", None))
@@ -587,6 +577,6 @@ class Ui_VisualiseAccountBook(object):
         self.radioButton_expense_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u652f\u51fa", None))
         self.radioButton_income_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u5165", None))
         self.groupBox_filter_fund.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u5b58\u6b3e\u8d26\u6237", None))
-        self.tabWidget_general.setTabText(self.tabWidget_general.indexOf(self.tab_pie_display), QCoreApplication.translate("VisualiseAccountBook", u"\u997c\u56fe", None))
+        self.tabWidget_general.setTabText(self.tabWidget_general.indexOf(self.tab_pie_display), QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u652f\u7ed3\u6784", None))
     # retranslateUi
 

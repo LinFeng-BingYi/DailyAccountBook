@@ -10,6 +10,12 @@
 NECESSITY = {'True': '温饱', 'Unknown': '小康', 'False': '奢华'}
 
 
+# 需要从配置文件获取的普通常量
+class CommonConst:
+    # 默认账本路径
+    ACCOUNT_BOOK_PATH = "D:\\PycharmProjects\\DailyAccountBook\\resources\\AccountBookFile.xml"
+
+
 # 支出相关的常量
 class ExpenseConst:
     # 类别
@@ -36,6 +42,7 @@ class ExpenseConst:
     # 显示记录的表格表头
     TABLEWIDGET_COLUMN_HEAD = {'需求强度': 'necessity', '数值': 'value', '类别': 'category', '细则': 'detail',
                                '描述': 'describe', '支出账户': 'from', '关联账户': 'associatedFund', '操作': ''}
+    IGNORE_CATEGORY = [14]
 
 
 # 收入相关的常量
@@ -52,6 +59,7 @@ class IncomeConst:
     }
     TABLEWIDGET_COLUMN_HEAD = {'数值': 'value', '类别': 'category', '细则': 'detail', '描述': 'describe',
                                '收入账户': 'to', '关联账户': 'associatedFund', '操作': ''}
+    IGNORE_CATEGORY = [5]
 
 
 class MovementConst:
@@ -69,9 +77,10 @@ class FundConst:
         3: "支付宝余额宝",
         4: "代管存款"
     }
-    TABLEWIDGET_COLUMN_HEAD = {}
+    TABLEWIDGET_COLUMN_HEAD = {'账户': 'fundName', '余额': 'value', '支出':  'expense', '收入': 'income', '不计入': 'ignore'}
 
 
+commonConst = CommonConst()
 expenseConst = ExpenseConst()
 incomeConst = IncomeConst()
 movementConst = MovementConst()

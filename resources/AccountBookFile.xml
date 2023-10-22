@@ -6,26 +6,31 @@
             <value>5000.00</value>
             <category>0</category>
             <fundName>微信零钱</fundName>
+            <ignore>False</ignore>
         </fund>
         <fund>
             <value>999.00</value>
             <category>1</category>
             <fundName>中国银行卡</fundName>
+            <ignore>False</ignore>
         </fund>
         <fund>
             <value>90.00</value>
             <category>2</category>
             <fundName>羊城通</fundName>
+            <ignore>False</ignore>
         </fund>
         <fund>
             <value>1700.07</value>
             <category>3</category>
             <fundName>支付宝余额宝</fundName>
+            <ignore>False</ignore>
         </fund>
         <fund>
             <value>5000.00</value>
             <category>4</category>
             <fundName>代管存款</fundName>
+            <ignore>True</ignore>
         </fund>
     </balance>
     <year value="2023">
@@ -48,7 +53,7 @@
                     </expense>
                     <expense necessity="False" associatedFund="None">
                         <value>1.00</value>
-                        <category>12</category>
+                        <category>17</category>
                         <detail>业务手续费</detail>
                         <describe>微信零钱提现1000的手续费</describe>
                         <from>0</from>
