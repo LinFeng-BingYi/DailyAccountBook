@@ -7,35 +7,40 @@
             <category>0</category>
             <fundName>微信零钱</fundName>
             <ignore>False</ignore>
+            <disposable>True</disposable>
         </fund>
         <fund>
             <value>999.00</value>
             <category>1</category>
             <fundName>中国银行卡</fundName>
             <ignore>False</ignore>
+            <disposable>True</disposable>
         </fund>
         <fund>
             <value>90.00</value>
             <category>2</category>
             <fundName>羊城通</fundName>
             <ignore>False</ignore>
+            <disposable>True</disposable>
         </fund>
         <fund>
             <value>1700.07</value>
             <category>3</category>
             <fundName>支付宝余额宝</fundName>
             <ignore>False</ignore>
+            <disposable>True</disposable>
         </fund>
         <fund>
             <value>5000.00</value>
             <category>4</category>
             <fundName>代管存款</fundName>
             <ignore>True</ignore>
+            <disposable>False</disposable>
         </fund>
     </balance>
     <year value="2023">
-        <month value="09">
-            <day value="11">
+        <month value="11">
+            <day value="01">
                 <expenses>
                     <expense necessity="True" associatedFund="None">
                         <value>5.00</value>

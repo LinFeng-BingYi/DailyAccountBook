@@ -481,11 +481,19 @@ class AccountBookXMLProcessor:
         e_action = e_date.find(action_path)
         e_record = e_action.find(record_path)
         if e_record is None:
-            print("未找到待删除的记录")
+            print("未找到待更新的记录")
             return False
 
-        # 修改了数值则需要冲正
+        # 修改了出/入账户、数值则需要冲正
+        # 不使用elif的原因：账户转移记录的出/入账户均可能被修改
+        reverse_flag = False
+        if 'from' in old_record_dict and old_record_dict['from'] != new_record_dict['from']:
+            reverse_flag = True
+        if 'to' in old_record_dict and old_record_dict['to'] != new_record_dict['to']:
+            reverse_flag = True
         if Decimal(old_record_dict['value']) != Decimal(new_record_dict['value']):
+            reverse_flag = True
+        if reverse_flag:
             # 先冲正原记录数据
             # 在用新数据修改账户变化和余额
             if action == 'movement':

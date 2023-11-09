@@ -29,6 +29,8 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
     def initWidgets(self):
+        # 初始化本窗口的文件处理器
+        self.file_processor = AccountBookXMLProcessor(commonConst.ACCOUNT_BOOK_PATH)
         # 设置初始日期为系统时间
         self.dateEdit.setDate(QDate.currentDate())
         # 默认账本路径
@@ -41,6 +43,9 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         self.tableWidget_income.setHorizontalHeaderLabels(list(incomeConst.TABLEWIDGET_COLUMN_HEAD))
         self.tableWidget_movement.setColumnCount(len(movementConst.TABLEWIDGET_COLUMN_HEAD))
         self.tableWidget_movement.setHorizontalHeaderLabels(list(movementConst.TABLEWIDGET_COLUMN_HEAD))
+
+        # 展示初始表格
+        self.responseSelectedDateChanging()
 
     def bindSignal(self):
         self.pushButton_file_path.clicked.connect(self.chooseFile)
@@ -67,7 +72,6 @@ class WidgetEditAccountBook(QWidget, Ui_EditAccountBook):
         if ".xml" != self.lineEdit_file_path.text()[-4:]:
             print("请选择XML文件！！")
             return
-        self.file_processor = AccountBookXMLProcessor(self.lineEdit_file_path.text())
         self.file_parse_result = self.file_processor.parseSpecificDateElement(self.dateEdit.text().replace('/', ''))
         print("文件解析内容: ", self.file_parse_result)
         if self.file_parse_result is None:

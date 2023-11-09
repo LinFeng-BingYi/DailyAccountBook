@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>可视化账本</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_top">
    <property name="leftMargin">
@@ -135,6 +135,9 @@
                     <height>30</height>
                    </size>
                   </property>
+                  <property name="displayFormat">
+                   <string>yyyy/MM/dd</string>
+                  </property>
                   <property name="calendarPopup">
                    <bool>true</bool>
                   </property>
@@ -163,6 +166,9 @@
                     <width>30</width>
                     <height>30</height>
                    </size>
+                  </property>
+                  <property name="displayFormat">
+                   <string>yyyy/MM/dd</string>
                   </property>
                   <property name="calendarPopup">
                    <bool>true</bool>
@@ -402,7 +408,28 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QWidget" name="widget_chart_display" native="true"/>
+                 <widget class="QWidget" name="widget_chart_display" native="true">
+                  <layout class="QGridLayout" name="gridLayout_chart_display">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>7</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <item row="0" column="0">
+                    <widget class="StatisticBarChartView" name="statistic_chart"/>
+                   </item>
+                  </layout>
+                 </widget>
                 </item>
                 <item>
                  <widget class="QWidget" name="widget_chart_config" native="true">
@@ -430,7 +457,7 @@
                    </property>
                    <item>
                     <widget class="QWidget" name="widget_config_panel" native="true">
-                     <layout class="QVBoxLayout" name="verticalLayout" stretch="5,3,5">
+                     <layout class="QVBoxLayout" name="verticalLayout" stretch="5,5">
                       <property name="spacing">
                        <number>0</number>
                       </property>
@@ -473,14 +500,14 @@
                          <property name="spacing">
                           <number>5</number>
                          </property>
-                         <item row="1" column="1">
-                          <widget class="QRadioButton" name="radioButton_year_scale">
+                         <item row="0" column="0">
+                          <widget class="QRadioButton" name="radioButton_day_scale">
                            <property name="text">
-                            <string>年份</string>
+                            <string>日号</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="1" column="0">
+                         <item row="0" column="1">
                           <widget class="QRadioButton" name="radioButton_month_scale">
                            <property name="text">
                             <string>月份</string>
@@ -490,67 +517,10 @@
                            </property>
                           </widget>
                          </item>
-                         <item row="0" column="0">
-                          <widget class="QRadioButton" name="radioButton_day_scale">
+                         <item row="1" column="0">
+                          <widget class="QRadioButton" name="radioButton_year_scale">
                            <property name="text">
-                            <string>日号</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="1">
-                          <widget class="QRadioButton" name="radioButton_week_scale">
-                           <property name="text">
-                            <string>星期</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QGroupBox" name="groupBox_chart_type">
-                        <property name="title">
-                         <string>图表类型</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                        </property>
-                        <property name="flat">
-                         <bool>true</bool>
-                        </property>
-                        <layout class="QHBoxLayout" name="horizontalLayout_chart_type">
-                         <property name="spacing">
-                          <number>5</number>
-                         </property>
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QCheckBox" name="checkBox_curve">
-                           <property name="text">
-                            <string>曲线图</string>
-                           </property>
-                           <property name="checked">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QCheckBox" name="checkBox_histo">
-                           <property name="text">
-                            <string>柱状图</string>
-                           </property>
-                           <property name="checked">
-                            <bool>true</bool>
+                            <string>年份</string>
                            </property>
                           </widget>
                          </item>
@@ -608,16 +578,6 @@
                           <widget class="QCheckBox" name="checkBox_income">
                            <property name="text">
                             <string>收入</string>
-                           </property>
-                           <property name="checked">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="2" column="1">
-                          <widget class="QCheckBox" name="checkBox_total_assets">
-                           <property name="text">
-                            <string>总资产</string>
                            </property>
                            <property name="checked">
                             <bool>true</bool>
@@ -1046,6 +1006,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>StatisticBarChartView</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">CustomWidgets</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

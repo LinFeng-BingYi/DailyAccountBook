@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QWidget, QTableWidgetItem
 from PySide6.QtCore import Qt, QDate
 
-import pandas as pd
 from datetime import datetime
+from decimal import Decimal
 
 from FormFiles.VisualiseAccountBook import Ui_VisualiseAccountBook
 from FileProcess.AccountBookXML import AccountBookXMLProcessor
@@ -52,6 +52,7 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
     def initWidgets(self):
         # 初始化本窗口的文件处理器
         self.file_processor = AccountBookXMLProcessor(commonConst.ACCOUNT_BOOK_PATH)
+        # 初始化时仅获取今年的所有记录，当日期范围包含其他年份时再扩展
         result = self.file_processor.getWholeYearRecord(str(self.today_date.year()))
         self.whole_year_records['expense'] = result[0]
         self.whole_year_records['income'] = result[1]
@@ -64,13 +65,14 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         self.dateEdit_end_date.setDate(self.today_date)
         self.dateEdit_start_date.setDate(self.today_month_1st)
 
-        # 显示总和区
-        self.display_all_sum(self.today_month_1st.toString("yyyyMMdd"), self.today_date.toString("yyyyMMdd"))
-
         # 设置记录表头
         self.tableWidget_fund_sum.setColumnCount(len(fundConst.TABLEWIDGET_COLUMN_HEAD))
         self.tableWidget_fund_sum.setHorizontalHeaderLabels(list(fundConst.TABLEWIDGET_COLUMN_HEAD))
-        self.displayFundSumTable(self.today_month_1st.toString("yyyyMMdd"), self.today_date.toString("yyyyMMdd"))
+
+        # 在图表区创建QChart对象
+
+        # 展示总额统计tab页中相关数据与图表
+        self.updateTabStatistic()
 
         # 收支结构tab--------------------------------------------
         # 设置初始日期范围为本月
@@ -81,8 +83,11 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
 
     def bindSignal(self):
         self.pushButton_expand_config_area.clicked.connect(self.changeStatisticChartExpand)
-        self.dateEdit_start_date.dateChanged.connect(lambda: self.display_all_sum(self.dateEdit_start_date.text().replace('/', ''), self.dateEdit_end_date.text().replace('/', '')))
-        self.dateEdit_end_date.dateChanged.connect(lambda: self.display_all_sum(self.dateEdit_start_date.text().replace('/', ''), self.dateEdit_end_date.text().replace('/', '')))
+        self.dateEdit_start_date.dateChanged.connect(self.updateTabStatistic)
+        self.dateEdit_end_date.dateChanged.connect(self.updateTabStatistic)
+        self.radioButton_day_scale.clicked.connect(self.updateTabStatistic)
+        self.radioButton_month_scale.clicked.connect(self.updateTabStatistic)
+        self.radioButton_year_scale.clicked.connect(self.updateTabStatistic)
 
     def changeStatisticChartExpand(self):
         """
@@ -91,9 +96,11 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         self.flag_expand_config_area = not self.flag_expand_config_area
         self.widget_config_panel.setVisible(self.flag_expand_config_area)
         if self.flag_expand_config_area:    # 展开
+            self.pushButton_expand_config_area.setText(">")
             self.widget_chart_config.setMinimumWidth(150)
             self.pushButton_expand_config_area.setMinimumHeight(30)
         else:                               # 隐藏
+            self.pushButton_expand_config_area.setText("<")
             self.widget_chart_config.setMinimumWidth(35)
             self.pushButton_expand_config_area.setMinimumHeight(350)
 
@@ -107,6 +114,18 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
                 ('20200101', '20200131')
         """
         return self.dateEdit_start_date.text().replace('/', ''), self.dateEdit_end_date.text().replace('/', '')
+
+    def updateTabStatistic(self):
+        """
+        Describe: 响应时间选择控件，更新总额统计tab页所有信息
+        """
+        start_date, end_date = self.getCurrentDateRange()
+        if start_date > end_date:
+            print("结束日期小于起始日期!!")
+            return
+        self.display_all_sum(start_date, end_date)
+        self.displayFundSumTable(start_date, end_date)
+        self.displayStatisticChart(start_date, end_date, self.getTimeScale())
 
     def display_all_sum(self, start_date, end_date):
         """
@@ -175,10 +194,10 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         Returns: float
             存款账户余额总和
         """
-        total_balance = 0
+        total_balance = Decimal(0.00)
         for balance_fund in self.balance_list:
             if not balance_fund['ignore']:
-                total_balance += balance_fund['value']
+                total_balance += Decimal(balance_fund['value']).quantize(Decimal('0.00'))
         return total_balance
 
     def displayFundSumTable(self, start_date, end_date):
@@ -195,3 +214,46 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
             self.tableWidget_fund_sum.setItem(current_row, 3, QTableWidgetItem(str(current_fund_income)))
             self.tableWidget_fund_sum.setItem(current_row, 4, QTableWidgetItem(str(fund['ignore'])))
             current_row += 1
+
+    def getTimeScale(self):
+        """
+        Describe: 获取当前选中的时间尺度
+
+        Returns: str['year', 'month', 'day']
+            表示时间尺度的字符串，'year' 表示年度，'month' 表示月度，'day' 表示日度
+        """
+        if self.radioButton_year_scale.isChecked():
+            return 'year'
+        elif self.radioButton_month_scale.isChecked():
+            return 'month'
+        elif self.radioButton_day_scale.isChecked():
+            return 'day'
+        else:
+            print("未选择时间尺度!!")
+            raise AttributeError("未选择时间尺度!!")
+
+    def displayStatisticChart(self, start_date, end_date, time_scale):
+        # 获取日期范围内的收支记录数据
+        start_date = formatDateStrToDf(start_date)
+        end_date = formatDateStrToDf(end_date)
+        expense_ignore_category = expenseConst.IGNORE_CATEGORY
+        income_ignore_category = incomeConst.IGNORE_CATEGORY
+        expense_query_str = '(date >= @start_date) & (date <= @end_date) & (category not in @expense_ignore_category)'
+        income_query_str = '(date >= @start_date) & (date <= @end_date) & (category not in @income_ignore_category)'
+        df_expense = self.whole_year_records['expense'].query(expense_query_str).loc[:, ['date', 'value']]
+        df_income = self.whole_year_records['income'].query(income_query_str).loc[:, ['date', 'value']]
+
+        # 按日分组收支记录，得到每日总的收入与支出，以便计算每日净收入
+        df_expense_grouped = df_expense.groupby('date').sum().reset_index()
+        df_income_grouped = df_income.groupby('date').sum().reset_index()
+        # 根据支出Dataframe与收入Dataframe进行join操作，以便得到净收入收入Dataframe
+        df_net = df_expense_grouped.set_index('date').join(df_income_grouped.set_index('date'), rsuffix='_income', how='outer')
+        # 新增一列df_net.value，其值为df_income.value减去df_expense.value
+        df_net['value'] = df_net['value_income'].sub(df_net['value'], fill_value=0)
+        df_net = df_net[['value']]
+        df_net.index.name = 'date'
+        df_net = df_net.reset_index()
+
+        # print("仅保留两个字段后的收入数据\n", df_income)
+        # print("净收入数据\n", df_net)
+        self.statistic_chart.scalingDfAndDisplay(df_expense, df_income, df_net, time_scale)

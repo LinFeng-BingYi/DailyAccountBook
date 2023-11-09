@@ -21,6 +21,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QDate
     QSizePolicy, QTabWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget)
 
+from CustomWidgets import StatisticBarChartView
+
 class Ui_VisualiseAccountBook(object):
     def setupUi(self, VisualiseAccountBook):
         if not VisualiseAccountBook.objectName():
@@ -196,6 +198,15 @@ class Ui_VisualiseAccountBook(object):
         self.horizontalLayout_chart_area.setContentsMargins(0, 0, 0, 0)
         self.widget_chart_display = QWidget(self.widget_chart_area)
         self.widget_chart_display.setObjectName(u"widget_chart_display")
+        self.gridLayout_chart_display = QGridLayout(self.widget_chart_display)
+        self.gridLayout_chart_display.setSpacing(0)
+        self.gridLayout_chart_display.setObjectName(u"gridLayout_chart_display")
+        self.gridLayout_chart_display.setContentsMargins(0, 7, 0, 0)
+        self.statistic_chart = StatisticBarChartView(self.widget_chart_display)
+        self.statistic_chart.setObjectName(u"statistic_chart")
+
+        self.gridLayout_chart_display.addWidget(self.statistic_chart, 0, 0, 1, 1)
+
 
         self.horizontalLayout_chart_area.addWidget(self.widget_chart_display)
 
@@ -220,52 +231,24 @@ class Ui_VisualiseAccountBook(object):
         self.gridLayout_time_scale.setSpacing(5)
         self.gridLayout_time_scale.setObjectName(u"gridLayout_time_scale")
         self.gridLayout_time_scale.setContentsMargins(0, 0, 0, 0)
-        self.radioButton_year_scale = QRadioButton(self.groupBox_time_scale)
-        self.radioButton_year_scale.setObjectName(u"radioButton_year_scale")
-
-        self.gridLayout_time_scale.addWidget(self.radioButton_year_scale, 1, 1, 1, 1)
-
-        self.radioButton_month_scale = QRadioButton(self.groupBox_time_scale)
-        self.radioButton_month_scale.setObjectName(u"radioButton_month_scale")
-        self.radioButton_month_scale.setChecked(True)
-
-        self.gridLayout_time_scale.addWidget(self.radioButton_month_scale, 1, 0, 1, 1)
-
         self.radioButton_day_scale = QRadioButton(self.groupBox_time_scale)
         self.radioButton_day_scale.setObjectName(u"radioButton_day_scale")
 
         self.gridLayout_time_scale.addWidget(self.radioButton_day_scale, 0, 0, 1, 1)
 
-        self.radioButton_week_scale = QRadioButton(self.groupBox_time_scale)
-        self.radioButton_week_scale.setObjectName(u"radioButton_week_scale")
+        self.radioButton_month_scale = QRadioButton(self.groupBox_time_scale)
+        self.radioButton_month_scale.setObjectName(u"radioButton_month_scale")
+        self.radioButton_month_scale.setChecked(True)
 
-        self.gridLayout_time_scale.addWidget(self.radioButton_week_scale, 0, 1, 1, 1)
+        self.gridLayout_time_scale.addWidget(self.radioButton_month_scale, 0, 1, 1, 1)
+
+        self.radioButton_year_scale = QRadioButton(self.groupBox_time_scale)
+        self.radioButton_year_scale.setObjectName(u"radioButton_year_scale")
+
+        self.gridLayout_time_scale.addWidget(self.radioButton_year_scale, 1, 0, 1, 1)
 
 
         self.verticalLayout.addWidget(self.groupBox_time_scale)
-
-        self.groupBox_chart_type = QGroupBox(self.widget_config_panel)
-        self.groupBox_chart_type.setObjectName(u"groupBox_chart_type")
-        self.groupBox_chart_type.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.groupBox_chart_type.setFlat(True)
-        self.horizontalLayout_chart_type = QHBoxLayout(self.groupBox_chart_type)
-        self.horizontalLayout_chart_type.setSpacing(5)
-        self.horizontalLayout_chart_type.setObjectName(u"horizontalLayout_chart_type")
-        self.horizontalLayout_chart_type.setContentsMargins(0, 0, 0, 0)
-        self.checkBox_curve = QCheckBox(self.groupBox_chart_type)
-        self.checkBox_curve.setObjectName(u"checkBox_curve")
-        self.checkBox_curve.setChecked(True)
-
-        self.horizontalLayout_chart_type.addWidget(self.checkBox_curve)
-
-        self.checkBox_histo = QCheckBox(self.groupBox_chart_type)
-        self.checkBox_histo.setObjectName(u"checkBox_histo")
-        self.checkBox_histo.setChecked(True)
-
-        self.horizontalLayout_chart_type.addWidget(self.checkBox_histo)
-
-
-        self.verticalLayout.addWidget(self.groupBox_chart_type)
 
         self.groupBox_chart_item = QGroupBox(self.widget_config_panel)
         self.groupBox_chart_item.setObjectName(u"groupBox_chart_item")
@@ -293,18 +276,11 @@ class Ui_VisualiseAccountBook(object):
 
         self.gridLayout_chart_iten.addWidget(self.checkBox_income, 0, 1, 1, 1)
 
-        self.checkBox_total_assets = QCheckBox(self.groupBox_chart_item)
-        self.checkBox_total_assets.setObjectName(u"checkBox_total_assets")
-        self.checkBox_total_assets.setChecked(True)
-
-        self.gridLayout_chart_iten.addWidget(self.checkBox_total_assets, 2, 1, 1, 1)
-
 
         self.verticalLayout.addWidget(self.groupBox_chart_item)
 
         self.verticalLayout.setStretch(0, 5)
-        self.verticalLayout.setStretch(1, 3)
-        self.verticalLayout.setStretch(2, 5)
+        self.verticalLayout.setStretch(1, 5)
 
         self.verticalLayout_chart_config.addWidget(self.widget_config_panel)
 
@@ -536,9 +512,11 @@ class Ui_VisualiseAccountBook(object):
     # setupUi
 
     def retranslateUi(self, VisualiseAccountBook):
-        VisualiseAccountBook.setWindowTitle(QCoreApplication.translate("VisualiseAccountBook", u"Form", None))
+        VisualiseAccountBook.setWindowTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u53ef\u89c6\u5316\u8d26\u672c", None))
         self.label_start_date.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u8d77\u59cb\u65e5\u671f", None))
+        self.dateEdit_start_date.setDisplayFormat(QCoreApplication.translate("VisualiseAccountBook", u"yyyy/MM/dd", None))
         self.label_end_date.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u7ed3\u675f\u65e5\u671f", None))
+        self.dateEdit_end_date.setDisplayFormat(QCoreApplication.translate("VisualiseAccountBook", u"yyyy/MM/dd", None))
         self.label_expense_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u652f\u51fa", None))
         self.label_expense_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"123456789.00", None))
         self.label_income_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u5165", None))
@@ -548,18 +526,13 @@ class Ui_VisualiseAccountBook(object):
         self.label_total_assets_sum.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u8d44\u4ea7", None))
         self.label_total_assets_sum_value.setText(QCoreApplication.translate("VisualiseAccountBook", u"123456789.00", None))
         self.groupBox_time_scale.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u65f6\u95f4\u5c3a\u5ea6", None))
-        self.radioButton_year_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u5e74\u4efd", None))
-        self.radioButton_month_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6708\u4efd", None))
         self.radioButton_day_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u65e5\u53f7", None))
-        self.radioButton_week_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u661f\u671f", None))
-        self.groupBox_chart_type.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u56fe\u8868\u7c7b\u578b", None))
-        self.checkBox_curve.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u66f2\u7ebf\u56fe", None))
-        self.checkBox_histo.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u67f1\u72b6\u56fe", None))
+        self.radioButton_month_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6708\u4efd", None))
+        self.radioButton_year_scale.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u5e74\u4efd", None))
         self.groupBox_chart_item.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u56fe\u8868\u5143\u7d20", None))
         self.checkBox_net_income.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u51c0\u6536\u5165", None))
         self.checkBox_expense.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u652f\u51fa", None))
         self.checkBox_income.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6536\u5165", None))
-        self.checkBox_total_assets.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u8d44\u4ea7", None))
         self.pushButton_expand_config_area.setText(QCoreApplication.translate("VisualiseAccountBook", u">", None))
         self.tabWidget_general.setTabText(self.tabWidget_general.indexOf(self.tab_statistic), QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u989d\u7edf\u8ba1", None))
         self.pushButton_prev_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"<", None))
