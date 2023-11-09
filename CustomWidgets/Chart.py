@@ -182,9 +182,6 @@ class StatisticBarChartView(QChartView):
         """
         self.updateBarSeries(df_expense, df_income, df_net)
 
-        # 先删除旧坐标轴
-        self.chart.removeAxis(self._axisX)
-        self.chart.removeAxis(self._axisY)
         # x轴labels
         date_str_list = [convertPandasToQDateTime(date).toString(self.time_scale[self.time_scale_now])
                          for date in df_net['date']]
