@@ -8,7 +8,6 @@ from xml.etree import ElementTree as et
 import os
 from decimal import Decimal
 from collections import OrderedDict
-from datetime import datetime
 import pandas as pd
 
 
@@ -54,6 +53,12 @@ class AccountBookXMLProcessor:
             若未找到指定year，则返回int类型的0；若未找到指定month，则返回int类型的1；若未找到指定day，则返回int类型的2。
             int型返回值用于控制从何处开始初始化日期元素。
         """
+        if date_str is None:
+            raise ValueError("date_str不能为空!")
+        if len(date_str) != 8 or not date_str.isdigit():
+            print("日期格式不正确！")
+            raise ValueError('日期格式不正确！必须为"yyyyMMdd"格式')
+
         e_year = self.e_dailyAccountBook.find(".//year[@value='{}']".format(date_str[:4]))
         if e_year is None:
             return 0
@@ -80,6 +85,38 @@ class AccountBookXMLProcessor:
         return balance_list
 
     def parseSpecificDateElement(self, date_str):
+        """
+        Describe: 根据日期字符串获取指定的day元素，然后解析该day元素下的所有子元素
+
+        Args:
+            date_str: str
+                格式为"yyyyMMdd"
+
+        Returns: dict[str, list[dict]]
+            若找到指定日期的元素，则返回dict类型的数据
+            若未找到指定日期，则返回None
+            注意：假设某天没有支出/收入/转移操作，那么返回结果dict中便不存在'expenses'/'incomes'/'movements'键
+
+            example:
+                return_dict = {
+                    'expenses': [
+                        {'necessity': 'True', 'value': Decimal('100.00'), 'category': 1, 'detail': 'expense detail', 'describe': 'An expense record', 'from': 0, 'associatedFund': 'None'},
+                        ...
+                    ],
+                    'incomes': [
+                        {'value': Decimal('300.00'), 'category': 3, 'detail': 'income detail', 'describe': 'An income record', 'to': 1, 'associatedFund': 'None'},
+                        ...
+                    ],
+                    'movements': [
+                        {'value': Decimal('500.00'), 'detail': 'movement detail', 'describe': 'An movement record', 'from': 0, 'to': 1},
+                        ...
+                    ],
+                    'variation': [
+                        {'category': 0, 'out': Decimal('100.00'), 'in': Decimal('300.00')},
+                        ...
+                    ]
+                }
+        """
         e_date = self.getSpecificDateElement(date_str)
 
         if isinstance(e_date, int):
@@ -540,34 +577,30 @@ class AccountBookXMLProcessor:
         if e_year is None:
             print(f"该年[{year}]没有动账记录!")
             return None
-        df_expense = pd.DataFrame(columns=['date', 'necessity', 'value', 'category', 'detail', 'describe', 'from', 'associatedFund'])
-        df_income = pd.DataFrame(columns=['date', 'value', 'category', 'detail', 'describe', 'to', 'associatedFund'])
-        df_movement = pd.DataFrame(columns=['date', 'value', 'detail', 'describe', 'from', 'to'])
-        df_variation = pd.DataFrame(columns=['date', 'category', 'out', 'in'])
+        # df_expense = pd.DataFrame(columns=['date', 'necessity', 'value', 'category', 'detail', 'describe', 'from', 'associatedFund'])
+        # df_income = pd.DataFrame(columns=['date', 'value', 'category', 'detail', 'describe', 'to', 'associatedFund'])
+        # df_movement = pd.DataFrame(columns=['date', 'value', 'detail', 'describe', 'from', 'to'])
+        # df_variation = pd.DataFrame(columns=['date', 'category', 'out', 'in'])
+        expense_dict = {'date': [], 'necessity': [], 'value': [], 'category': [], 'detail': [], 'describe': [], 'from': [], 'associatedFund': []}
+        income_dict = {'date': [], 'value': [], 'category': [], 'detail': [], 'describe': [], 'to': [], 'associatedFund': []}
+        movement_dict = {'date': [], 'value': [], 'detail': [], 'describe': [], 'from': [], 'to': []}
+        variation_dict = {'date': [], 'category': [], 'out': [], 'in': []}
+        # 创建一个temp_list用于减少代码量，以便对所有动账类型记录字典添加数据
+        temp_dict = {'expenses': expense_dict, 'incomes': income_dict, 'movements': movement_dict, 'variation': variation_dict}
+        # 5层循环，有点crazy（😀）
         for e_month in list(e_year):
             for e_day in list(e_month):
+                # 拼接日期字符串为"yyyyMMdd"格式
                 date_str = year + e_month.attrib['value'] + e_day.attrib['value']
+                # 获取取指定日期的所有动账记录
                 current_parse_dict = self.parseSpecificDateElement(date_str)
-                if 'expenses' in current_parse_dict.keys():
-                    record_list = current_parse_dict['expenses']
-                    for record in record_list:
-                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
-                        df_expense = df_expense._append(record, ignore_index=True)
-                if 'incomes' in current_parse_dict.keys():
-                    record_list = current_parse_dict['incomes']
-                    for record in record_list:
-                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
-                        df_income = df_income._append(record, ignore_index=True)
-                if 'movements' in current_parse_dict.keys():
-                    record_list = current_parse_dict['movements']
-                    for record in record_list:
-                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
-                        df_movement = df_movement._append(record, ignore_index=True)
-                if 'variation' in current_parse_dict.keys():
-                    record_list = current_parse_dict['variation']
-                    for record in record_list:
-                        record['date'] = datetime.strptime(date_str, "%Y%m%d")
-                        df_variation = df_variation._append(record, ignore_index=True)
+                for action in ['expenses', 'incomes', 'movements', 'variation']:
+                    if action in current_parse_dict.keys():
+                        record_list = current_parse_dict[action]
+                        for record in record_list:
+                            temp_dict[action]['date'].append(pd.to_datetime(date_str, format="%Y%m%d"))
+                            for key in record:
+                                temp_dict[action][key].append(record[key])
         # # 显示所有列
         # pd.set_option('display.max_columns', None)
         # # 显示所有行
@@ -579,9 +612,8 @@ class AccountBookXMLProcessor:
         # # 对齐显示
         # pd.set_option('display.unicode.ambiguous_as_wide', True)
         # pd.set_option('display.unicode.east_asian_width', True)
-        # print(df_expense)
-        # print(df_income)
-        # print(df_movement)
-        # print(df_variation)
 
-        return df_expense, df_income, df_movement, df_variation
+        result_list = []
+        for value in temp_dict.values():
+            result_list.append(pd.DataFrame(data=value))
+        return result_list

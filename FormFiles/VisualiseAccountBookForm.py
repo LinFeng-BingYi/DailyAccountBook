@@ -1,16 +1,13 @@
 from PySide6.QtWidgets import QWidget, QTableWidgetItem
 from PySide6.QtCore import Qt, QDate
 
-from datetime import datetime
+import pandas as pd
 from decimal import Decimal
 
 from FormFiles.VisualiseAccountBook import Ui_VisualiseAccountBook
 from FileProcess.AccountBookXML import AccountBookXMLProcessor
 
 from CommonFiles.ConstArgs import *
-
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 def formatDateStrToDf(date_str):
@@ -24,7 +21,7 @@ def formatDateStrToDf(date_str):
     Returns: str
         格式为yyyy-MM-dd
     """
-    return datetime.strptime(date_str, "%Y%m%d").date()
+    return pd.to_datetime(date_str, format="%Y%m%d")
 
 
 class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
@@ -181,11 +178,15 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         end_date = formatDateStrToDf(end_date)
         # print("正在计算支出总和，范围：", start_date, " to ", end_date)
         ignore_category = constClass.IGNORE_CATEGORY
-        query_str = '(date >= @start_date) & (date <= @end_date) & (category not in @ignore_category)'
+        action_df = self.whole_year_records[action]
+        # 根据日期和类型筛选动账记录
+        filtered_df = action_df.loc[(action_df['date'].between(start_date, end_date)) &
+                                    (action_df['category'].isin(ignore_category) == False)]   # 此处与False比较必须用双等号
+        # 如果指定了账户，则筛选该账户的动账记录
         if fund is not None:
             from_or_to = 'from' if action == 'expense' else 'to'
-            query_str = query_str + ' & (`' + from_or_to + '` == @fund)'
-        return self.whole_year_records[action].query(query_str)['value'].sum()
+            filtered_df = filtered_df.loc[filtered_df[from_or_to] == fund]
+        return filtered_df['value'].sum()
 
     def getTotalBalance(self):
         """
@@ -250,7 +251,9 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         df_net = df_expense_grouped.set_index('date').join(df_income_grouped.set_index('date'), rsuffix='_income', how='outer')
         # 新增一列df_net.value，其值为df_income.value减去df_expense.value
         df_net['value'] = df_net['value_income'].sub(df_net['value'], fill_value=0)
+        # 按date字段join后，date则变成了index，此时只需提取value字段
         df_net = df_net[['value']]
+        # 重命名index为date，并将其从index设为column
         df_net.index.name = 'date'
         df_net = df_net.reset_index()
 

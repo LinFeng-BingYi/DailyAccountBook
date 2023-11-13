@@ -219,10 +219,10 @@ class Ui_VisualiseAccountBook(object):
         self.verticalLayout_chart_config.setContentsMargins(0, 0, 0, 0)
         self.widget_config_panel = QWidget(self.widget_chart_config)
         self.widget_config_panel.setObjectName(u"widget_config_panel")
-        self.verticalLayout = QVBoxLayout(self.widget_config_panel)
-        self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_config_panel = QVBoxLayout(self.widget_config_panel)
+        self.verticalLayout_config_panel.setSpacing(0)
+        self.verticalLayout_config_panel.setObjectName(u"verticalLayout_config_panel")
+        self.verticalLayout_config_panel.setContentsMargins(0, 0, 0, 0)
         self.groupBox_time_scale = QGroupBox(self.widget_config_panel)
         self.groupBox_time_scale.setObjectName(u"groupBox_time_scale")
         self.groupBox_time_scale.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
@@ -248,7 +248,7 @@ class Ui_VisualiseAccountBook(object):
         self.gridLayout_time_scale.addWidget(self.radioButton_year_scale, 1, 0, 1, 1)
 
 
-        self.verticalLayout.addWidget(self.groupBox_time_scale)
+        self.verticalLayout_config_panel.addWidget(self.groupBox_time_scale)
 
         self.groupBox_chart_item = QGroupBox(self.widget_config_panel)
         self.groupBox_chart_item.setObjectName(u"groupBox_chart_item")
@@ -277,10 +277,10 @@ class Ui_VisualiseAccountBook(object):
         self.gridLayout_chart_iten.addWidget(self.checkBox_income, 0, 1, 1, 1)
 
 
-        self.verticalLayout.addWidget(self.groupBox_chart_item)
+        self.verticalLayout_config_panel.addWidget(self.groupBox_chart_item)
 
-        self.verticalLayout.setStretch(0, 5)
-        self.verticalLayout.setStretch(1, 5)
+        self.verticalLayout_config_panel.setStretch(0, 5)
+        self.verticalLayout_config_panel.setStretch(1, 5)
 
         self.verticalLayout_chart_config.addWidget(self.widget_config_panel)
 
@@ -426,21 +426,16 @@ class Ui_VisualiseAccountBook(object):
 
         self.gridLayout_time_scale_tab_pie.addWidget(self.radioButton_day_scale_tab_pie, 0, 0, 1, 1)
 
-        self.radioButton_week_scale_tab_pie = QRadioButton(self.groupBox_time_scale_tab_pie)
-        self.radioButton_week_scale_tab_pie.setObjectName(u"radioButton_week_scale_tab_pie")
-
-        self.gridLayout_time_scale_tab_pie.addWidget(self.radioButton_week_scale_tab_pie, 0, 1, 1, 1)
-
         self.radioButton_month_scale_tab_pie = QRadioButton(self.groupBox_time_scale_tab_pie)
         self.radioButton_month_scale_tab_pie.setObjectName(u"radioButton_month_scale_tab_pie")
         self.radioButton_month_scale_tab_pie.setChecked(True)
 
-        self.gridLayout_time_scale_tab_pie.addWidget(self.radioButton_month_scale_tab_pie, 1, 0, 1, 1)
+        self.gridLayout_time_scale_tab_pie.addWidget(self.radioButton_month_scale_tab_pie, 0, 1, 1, 1)
 
         self.radioButton_year_scale_tab_pie = QRadioButton(self.groupBox_time_scale_tab_pie)
         self.radioButton_year_scale_tab_pie.setObjectName(u"radioButton_year_scale_tab_pie")
 
-        self.gridLayout_time_scale_tab_pie.addWidget(self.radioButton_year_scale_tab_pie, 1, 1, 1, 1)
+        self.gridLayout_time_scale_tab_pie.addWidget(self.radioButton_year_scale_tab_pie, 1, 0, 1, 1)
 
 
         self.verticalLayout_control_panel.addWidget(self.groupBox_time_scale_tab_pie)
@@ -536,14 +531,13 @@ class Ui_VisualiseAccountBook(object):
         self.pushButton_expand_config_area.setText(QCoreApplication.translate("VisualiseAccountBook", u">", None))
         self.tabWidget_general.setTabText(self.tabWidget_general.indexOf(self.tab_statistic), QCoreApplication.translate("VisualiseAccountBook", u"\u603b\u989d\u7edf\u8ba1", None))
         self.pushButton_prev_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"<", None))
-        self.label_current_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"2023/10/18", None))
+        self.label_current_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"2023/11/18", None))
         self.pushButton_post_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u">", None))
         self.groupBox_date_range.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u65f6\u95f4\u8303\u56f4", None))
         self.label_start_date_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u8d77\u59cb\u65e5\u671f", None))
         self.label_end_date_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u7ed3\u675f\u65e5\u671f", None))
         self.groupBox_time_scale_tab_pie.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u65f6\u95f4\u5c3a\u5ea6", None))
         self.radioButton_day_scale_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u65e5\u53f7", None))
-        self.radioButton_week_scale_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u661f\u671f", None))
         self.radioButton_month_scale_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6708\u4efd", None))
         self.radioButton_year_scale_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u5e74\u4efd", None))
         self.groupBox_vary_type.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u52a8\u8d26\u7c7b\u578b", None))

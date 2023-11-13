@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <DailyAccountBook>
     <balance>
-        <!-->新增动账记录后，各存款账户余额<-->
+        <!-->假设昨日各账户余额分别为：微信零钱3800、中国银行卡0、羊城通100、支付宝余额宝1700、代管存款2000<-->
+        <!-->则以下存款余额是新增今日动账记录后的余额<-->
         <fund>
             <value>5000.00</value>
             <category>0</category>
@@ -10,7 +11,7 @@
             <disposable>True</disposable>
         </fund>
         <fund>
-            <value>999.00</value>
+            <value>3999.00</value>
             <category>1</category>
             <fundName>中国银行卡</fundName>
             <ignore>False</ignore>
@@ -60,7 +61,14 @@
                         <value>1.00</value>
                         <category>17</category>
                         <detail>业务手续费</detail>
-                        <describe>微信零钱提现1000的手续费</describe>
+                        <describe>微信零钱提现1000的10%手续费</describe>
+                        <from>0</from>
+                    </expense>
+                    <expense necessity="True" associatedFund="None">
+                        <value>800.00</value>
+                        <category>2</category>
+                        <detail>房租</detail>
+                        <describe>扣除后微信零钱余额=3800-800=3000</describe>
                         <from>0</from>
                     </expense>
                 </expenses>
@@ -72,6 +80,13 @@
                         <detail>转账</detail>
                         <describe>托管人转给本人3000，帮忙存放。本人微信零钱余额=3000+3000=6000元；同时代管存款余额=2000+3000=5000元</describe>
                         <to>0</to>
+                    </income>
+                    <income associatedFund="None">
+                        <value>3000</value>
+                        <category>0</category>
+                        <detail>工资</detail>
+                        <describe>工资入账。入账后，中国银行卡余额=0+3000=3000</describe>
+                        <to>1</to>
                     </income>
                     <income associatedFund="None">
                         <value>0.07</value>
@@ -86,7 +101,7 @@
                     <movement>
                         <value>999.00</value>
                         <detail>提现</detail>
-                        <describe>从微信零钱向中国银行卡提现1000元。完成后微信零钱余额=6000-999-1=5000；中国银行卡余额=0+999=999；被收取0.1%的手续费</describe>
+                        <describe>从微信零钱向中国银行卡提现1000元。完成后微信零钱余额=6000-999-1=5000；中国银行卡余额=3000+999=3999；被收取0.1%的手续费</describe>
                         <from>0</from>
                         <to>1</to>
                     </movement>
@@ -94,13 +109,13 @@
                 <variation>
                     <fund>
                         <category>0</category>
-                        <out>1.00</out>
+                        <out>801.00</out>
                         <in>3000.00</in>
                     </fund>
                     <fund>
                         <category>1</category>
                         <out>0.00</out>
-                        <in>0.00</in>
+                        <in>3000.00</in>
                     </fund>
                     <fund>
                         <category>2</category>
