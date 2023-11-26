@@ -13,4 +13,4 @@ from .ComboBox import ComboBoxInTableWidget
 from .TabWidget import FormTabBar, QTabWidget
 
 # Chart
-from .Chart import StatisticBarChartView
+from .Chart import StatisticBarChartView, ActionStructurePieChartView

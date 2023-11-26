@@ -5,8 +5,10 @@
 # @File    : Chart.py
 # @Time    : 2023/11/1 21:16
 # @Dsc     : 绘图控件
+import time
 
-from PySide6.QtCharts import QChart, QChartView, QLineSeries, QBarSeries, QDateTimeAxis, QValueAxis, QBarCategoryAxis, QBarSet
+from PySide6.QtCharts import QChart, QChartView, QLineSeries, QBarSeries, QDateTimeAxis, QValueAxis, QBarCategoryAxis, \
+    QBarSet, QPieSlice, QPieSeries
 from PySide6.QtGui import QPainter, QPen, QCursor
 from PySide6.QtCore import Qt, QDate, QDateTime
 from PySide6.QtWidgets import QApplication, QToolTip
@@ -147,11 +149,11 @@ class StatisticBarChartView(QChartView):
 
         Args:
             df_expense: pandas.DataFrame
-                支出数据
+                支出数据。只有 'date'、'value' 两个字段，其中 'date' 的值满足主键唯一(即按每个日期计算了当日总额)
             df_income: pandas.DataFrame
-                收入数据
+                收入数据。字段情况同支出数据
             df_net: pandas.DataFrame
-                净收入数据
+                净收入数据。字段情况同支出数据
         """
         # 清除series
         self.bar_series.clear()
@@ -174,11 +176,11 @@ class StatisticBarChartView(QChartView):
 
         Args:
             df_expense: pandas.DataFrame
-                支出数据
+                支出数据。只有 'date'、'value' 两个字段，其中 'date' 的值满足主键唯一(即按每个日期计算了当日总额)
             df_income: pandas.DataFrame
-                收入数据
+                收入数据。字段情况同支出数据
             df_net: pandas.DataFrame
-                净收入数据
+                净收入数据。字段情况同支出数据
         """
         self.updateBarSeries(df_expense, df_income, df_net)
 
@@ -195,11 +197,11 @@ class StatisticBarChartView(QChartView):
 
         Args:
             df_expense: pandas.DataFrame
-                支出数据
+                支出数据。只有 'date'、'value' 两个字段，其中 'date' 的值满足主键唯一(即按每个日期计算了当日总额)
             df_income: pandas.DataFrame
-                收入数据
+                收入数据。字段情况同支出数据
             df_net: pandas.DataFrame
-                净收入数据
+                净收入数据。字段情况同支出数据
             time_scale: str['year', 'month', 'day']
                 时间尺度
         """
@@ -361,11 +363,11 @@ class StatisticChartView(QChartView):
 
         Args:
             df_expense: pandas.DataFrame
-                支出数据
+                支出数据。只有 'date'、'value' 两个字段，其中 'date' 的值满足主键唯一(即按每个日期计算了当日总额)
             df_income: pandas.DataFrame
-                收入数据
+                收入数据。字段情况同支出数据
             df_net: pandas.DataFrame
-                净收入数据
+                净收入数据。字段情况同支出数据
         """
         # 更新series
         self.updateLineSeries(df_expense, self.series_line_expense)
@@ -384,11 +386,11 @@ class StatisticChartView(QChartView):
 
         Args:
             df_expense: pandas.DataFrame
-                支出数据
+                支出数据。只有 'date'、'value' 两个字段，其中 'date' 的值满足主键唯一(即按每个日期计算了当日总额)
             df_income: pandas.DataFrame
-                收入数据
+                收入数据。字段情况同支出数据
             df_net: pandas.DataFrame
-                净收入数据
+                净收入数据。字段情况同支出数据
             time_scale: str['year', 'month', 'day']
                 时间尺度
         """
@@ -413,12 +415,103 @@ class StatisticChartView(QChartView):
         print(df_expense)
         print(df_income)
         self.displayAllLineChart(df_expense, df_income, df_net)
+        
+        
+class ActionStructurePieChartView(QChartView):
+    def __init__(self, action, parent=None):
+        super().__init__()
+        if action not in ['expense', 'income']:
+            raise AttributeError("创建收支结构饼图时，传入的动账类型错误!!")
+        self.action = action                                                   # 动账类型
+        self.action_localization_dict = {'expense': '支出', 'income': '收入'}    # 动账类型翻译字典
+        self.action_localized = self.action_localization_dict[action]          # 翻译后的动账类型，用于在界面上展示
+        self.parent = parent
+
+        self.chart = QChart()
+        self.chart.setAnimationOptions(QChart.AnimationOption.SeriesAnimations)
+        self.setChart(self.chart)
+
+        # 饼图切片slice列表
+        self.slice_expense_list = []
+        self.slice_income_list = []
+        # 饼图序列series
+        self.pie_series = QPieSeries()
+        self.pie_series.setHoleSize(0.4)
+
+        self.initWidget()
+        self.bindSignal()
+
+    def initWidget(self):
+        # 标题和标签
+        self.chart.setTitle(self.action_localized + "结构")
+        # self.chart.legend().hide()
+
+        category_init_dict = {i: self.action_localized + str(i + 1) for i in range(5)}
+        df_init_action = pd.DataFrame(
+            {"category": [i for i in range(5)], "value": [(i + 2) * 10 for i in range(5)]})
+        self.updatePieSeries(df_init_action, category_init_dict)
+        # 将series添加到chart中
+        self.chart.addSeries(self.pie_series)
+
+    def bindSignal(self):
+        self.pie_series.hovered.connect(self.onSeriesHovered)
+
+    def onSeriesHovered(self, the_slice: QPieSlice, state):
+        """
+        Describe: 鼠标悬停series事件处理函数
+
+        Args:
+            the_slice: PySide6.QtCharts.QPieSlice
+                表示鼠标当前所悬停的饼图切片
+            state: bool
+                表示鼠标是否悬停在slice上。鼠标悬停时为True，离开后变为False
+        """
+        the_slice.setExploded(state)
+        the_slice.setLabelVisible(state)
+        the_slice.setLabelArmLengthFactor(0.03)
+        pure_label = the_slice.label().split(' ')[0]
+        if state:
+            the_slice.setLabel(f'{pure_label} {the_slice.value()} {the_slice.percentage():.2%}')
+        else:
+            the_slice.setLabel(pure_label)
+
+    def updatePieSeries(self, df_action, category_dict):
+        """
+        Describe: 用新数据更新series
+
+        Args:
+            df_action: pandas.DataFrame
+                动账数据。只有 'category'、'value' 两个字段
+            category_dict: dict
+                收支类型字典
+        """
+        # 清除series
+        self.pie_series.clear()
+        # print("饼图数据：\n", df_action)
+        # 将数据加入series
+        for i in range(len(df_action)):
+            category_text = category_dict[df_action['category'][i]]
+            self.pie_series.append(category_text, df_action['value'][i])
+
+    def displayFoldAnimation(self):
+        """
+        Describe: 展示收起动画效果
+        """
+        # print("收起动画")
+        self.pie_series.setPieEndAngle(0)
+
+    def displayExpandAnimation(self):
+        """
+        Describe: 展示展开动画效果
+        """
+        # print("展开动画")
+        self.pie_series.setPieEndAngle(360)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    chart_view = StatisticBarChartView()
+    chart_view = ActionStructurePieChartView("expense")
     chart_view.setRenderHint(QPainter.Antialiasing)
     chart_view.show()
 

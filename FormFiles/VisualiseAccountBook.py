@@ -16,10 +16,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QDateEdit,
-    QFrame, QGridLayout, QGroupBox, QHBoxLayout,
-    QHeaderView, QLabel, QPushButton, QRadioButton,
-    QSizePolicy, QTabWidget, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+    QFrame, QGraphicsView, QGridLayout, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QPushButton,
+    QRadioButton, QSizePolicy, QTabWidget, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget)
 
 from CustomWidgets import StatisticBarChartView
 
@@ -362,6 +362,15 @@ class Ui_VisualiseAccountBook(object):
 
         self.widget_pie_chart = QWidget(self.widget_display)
         self.widget_pie_chart.setObjectName(u"widget_pie_chart")
+        self.gridLayout_pie_chart = QGridLayout(self.widget_pie_chart)
+        self.gridLayout_pie_chart.setSpacing(0)
+        self.gridLayout_pie_chart.setObjectName(u"gridLayout_pie_chart")
+        self.gridLayout_pie_chart.setContentsMargins(0, 0, 0, 0)
+        self.ex_or_in_struct_chart = QGraphicsView(self.widget_pie_chart)
+        self.ex_or_in_struct_chart.setObjectName(u"ex_or_in_struct_chart")
+
+        self.gridLayout_pie_chart.addWidget(self.ex_or_in_struct_chart, 0, 0, 1, 1)
+
 
         self.verticalLayout_display.addWidget(self.widget_pie_chart)
 
@@ -535,7 +544,9 @@ class Ui_VisualiseAccountBook(object):
         self.pushButton_post_range_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u">", None))
         self.groupBox_date_range.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u65f6\u95f4\u8303\u56f4", None))
         self.label_start_date_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u8d77\u59cb\u65e5\u671f", None))
+        self.dateEdit_start_date_tab_pie.setDisplayFormat(QCoreApplication.translate("VisualiseAccountBook", u"yyyy/MM/dd", None))
         self.label_end_date_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u7ed3\u675f\u65e5\u671f", None))
+        self.dateEdit_end_date_tab_pie.setDisplayFormat(QCoreApplication.translate("VisualiseAccountBook", u"yyyy/MM/dd", None))
         self.groupBox_time_scale_tab_pie.setTitle(QCoreApplication.translate("VisualiseAccountBook", u"\u65f6\u95f4\u5c3a\u5ea6", None))
         self.radioButton_day_scale_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u65e5\u53f7", None))
         self.radioButton_month_scale_tab_pie.setText(QCoreApplication.translate("VisualiseAccountBook", u"\u6708\u4efd", None))

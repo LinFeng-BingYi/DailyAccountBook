@@ -745,7 +745,28 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QWidget" name="widget_pie_chart" native="true"/>
+                 <widget class="QWidget" name="widget_pie_chart" native="true">
+                  <layout class="QGridLayout" name="gridLayout_pie_chart">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <item row="0" column="0">
+                    <widget class="QGraphicsView" name="ex_or_in_struct_chart"/>
+                   </item>
+                  </layout>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -816,6 +837,9 @@
                        <height>30</height>
                       </size>
                      </property>
+                     <property name="displayFormat">
+                      <string>yyyy/MM/dd</string>
+                     </property>
                      <property name="calendarPopup">
                       <bool>true</bool>
                      </property>
@@ -841,6 +865,9 @@
                        <width>0</width>
                        <height>30</height>
                       </size>
+                     </property>
+                     <property name="displayFormat">
+                      <string>yyyy/MM/dd</string>
                      </property>
                      <property name="calendarPopup">
                       <bool>true</bool>
@@ -1003,7 +1030,7 @@
   <customwidget>
    <class>StatisticBarChartView</class>
    <extends>QGraphicsView</extends>
-   <header location="global">CustomWidgets</header>
+   <header>CustomWidgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

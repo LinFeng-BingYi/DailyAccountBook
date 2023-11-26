@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QWidget, QTableWidgetItem
 from PySide6.QtCore import Qt, QDate
+from CustomWidgets import ActionStructurePieChartView
 
 import pandas as pd
 from decimal import Decimal
@@ -29,12 +30,21 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
     def __init__(self):
         super(WidgetVisualiseAccountBook, self).__init__()
         self.setupUi(self)
+        # 初始化收支结构tab中的图表。由于__init__函数需要传参，因此不能通过QDesigner的“提升为”功能去初始化
+        self.expense_pie = ActionStructurePieChartView('expense')
+        self.income_pie = ActionStructurePieChartView('income')
+        self.gridLayout_pie_chart.addWidget(self.expense_pie, 1, 0)
+        self.gridLayout_pie_chart.addWidget(self.income_pie, 2, 0)
+        self.ex_or_in_struct_chart.setVisible(False)
+        self.income_pie.setVisible(False)
 
         self.flag_expand_config_area = True                             # 判断总额统计tab的图表配置区域是否展开
         self.flag_df_updated = False                                    # 判断总额统计tab的df是否已经更新
         self.file_processor: AccountBookXMLProcessor = None             # 收支记录文件读写器
         self.whole_year_records = {}                                    # 全年记录
         self.balance_list = []                                          # 存款账户余额列表
+        self.tab_ExOrIn_time_scale_format = {'year': "yyyy", 'month': "yyyy/MM", 'day': "MM/dd"}
+        self.current_pie_date = None                                    # 收支结构tab饼图当前日期
 
         self.today_date = QDate.currentDate()                                       # 今天的日期
         self.today_month_1st = self.today_date.addDays(-self.today_date.day() + 1)  # 本月第一天
@@ -66,8 +76,6 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         self.tableWidget_fund_sum.setColumnCount(len(fundConst.TABLEWIDGET_COLUMN_HEAD))
         self.tableWidget_fund_sum.setHorizontalHeaderLabels(list(fundConst.TABLEWIDGET_COLUMN_HEAD))
 
-        # 在图表区创建QChart对象
-
         # 展示总额统计tab页中相关数据与图表
         self.updateTabStatistic()
 
@@ -76,15 +84,30 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         self.dateEdit_end_date_tab_pie.setDate(self.today_date)
         self.dateEdit_start_date_tab_pie.setDate(self.today_month_1st)
         # 设置饼图标题日期范围为本月
-        self.label_current_range_pie.setText(self.today_date.toString('yyyy/MM/XX'))
+        self.current_pie_date = self.today_date
+        self.label_current_range_pie.setText(self.current_pie_date.toString(self.tab_ExOrIn_time_scale_format['month']))
+        # 设置收入饼图初始状态为收起
+        self.income_pie.displayFoldAnimation()
+
+        # 展示收支结构tab页中相关数据与图表
+        self.updateTabExOrInStructure()
 
     def bindSignal(self):
+        # 总额统计tab--------------------------------------------
         self.pushButton_expand_config_area.clicked.connect(self.changeStatisticChartExpand)
         self.dateEdit_start_date.dateChanged.connect(self.updateTabStatistic)
         self.dateEdit_end_date.dateChanged.connect(self.updateTabStatistic)
         self.radioButton_day_scale.clicked.connect(self.updateTabStatistic)
         self.radioButton_month_scale.clicked.connect(self.updateTabStatistic)
         self.radioButton_year_scale.clicked.connect(self.updateTabStatistic)
+        # 收支结构tab--------------------------------------------
+        self.dateEdit_start_date_tab_pie.dateChanged.connect(self.updateTabExOrInStructure)
+        self.dateEdit_end_date_tab_pie.dateChanged.connect(self.updateTabExOrInStructure)
+        self.radioButton_day_scale_tab_pie.clicked.connect(self.updateTabExOrInStructure)
+        self.radioButton_month_scale_tab_pie.clicked.connect(self.updateTabExOrInStructure)
+        self.radioButton_year_scale_tab_pie.clicked.connect(self.updateTabExOrInStructure)
+        self.radioButton_expense_tab_pie.clicked.connect(self.showTabExOrInPie)
+        self.radioButton_income_tab_pie.clicked.connect(self.showTabExOrInPie)
 
     def changeStatisticChartExpand(self):
         """
@@ -101,16 +124,22 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
             self.widget_chart_config.setMinimumWidth(35)
             self.pushButton_expand_config_area.setMinimumHeight(350)
 
-    def getCurrentDateRange(self):
+    def getCurrentDateRange(self, tab='statistic'):
         """
-        Describe: 返回当前选择的日期范围
+        Describe: 返回标签页中当前选择的日期范围
+
+        Args:
+            tab: str['statistic', 'pie']
+                目标标签页。'statistic' 表示总额统计页，'pie' 表示收支结构页
 
         Returns: tuple[str, str]
             包含起始日期、结束日期的二元元组，格式为yyyyMMdd
             example:
                 ('20200101', '20200131')
         """
-        return self.dateEdit_start_date.text().replace('/', ''), self.dateEdit_end_date.text().replace('/', '')
+        date_edit_start = self.dateEdit_start_date if tab == 'statistic' else self.dateEdit_start_date_tab_pie
+        date_edit_end = self.dateEdit_end_date if tab == 'statistic' else self.dateEdit_end_date_tab_pie
+        return date_edit_start.text().replace('/', ''), date_edit_end.text().replace('/', '')
 
     def updateTabStatistic(self):
         """
@@ -237,12 +266,14 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
         # 获取日期范围内的收支记录数据
         start_date = formatDateStrToDf(start_date)
         end_date = formatDateStrToDf(end_date)
-        expense_ignore_category = expenseConst.IGNORE_CATEGORY
-        income_ignore_category = incomeConst.IGNORE_CATEGORY
-        expense_query_str = '(date >= @start_date) & (date <= @end_date) & (category not in @expense_ignore_category)'
-        income_query_str = '(date >= @start_date) & (date <= @end_date) & (category not in @income_ignore_category)'
-        df_expense = self.whole_year_records['expense'].query(expense_query_str).loc[:, ['date', 'value']]
-        df_income = self.whole_year_records['income'].query(income_query_str).loc[:, ['date', 'value']]
+        ex_ignore_category = expenseConst.IGNORE_CATEGORY
+        in_ignore_category = incomeConst.IGNORE_CATEGORY
+        ex_df = self.whole_year_records['expense']
+        in_df = self.whole_year_records['income']
+        df_expense = ex_df.loc[(ex_df['date'].between(start_date, end_date)) &
+                               (ex_df['category'].isin(ex_ignore_category) == False)].loc[:, ['date', 'value']]
+        df_income = in_df.loc[(in_df['date'].between(start_date, end_date)) &
+                              (in_df['category'].isin(in_ignore_category) == False)].loc[:, ['date', 'value']]
 
         # 按日分组收支记录，得到每日总的收入与支出，以便计算每日净收入
         df_expense_grouped = df_expense.groupby('date').sum().reset_index()
@@ -259,4 +290,111 @@ class WidgetVisualiseAccountBook(QWidget, Ui_VisualiseAccountBook):
 
         # print("仅保留两个字段后的收入数据\n", df_income)
         # print("净收入数据\n", df_net)
-        self.statistic_chart.scalingDfAndDisplay(df_expense, df_income, df_net, time_scale)
+        self.statistic_chart.scalingDfAndDisplay(df_expense_grouped, df_income_grouped, df_net, time_scale)
+
+    def updateTabExOrInStructure(self):
+        """
+        Describe: 响应各控件，并根据时间尺度控制饼图的时间范围。更新收支结构tab页所有信息
+        """
+        start_date, end_date = self.getCurrentDateRange('pie')
+        if start_date > end_date:
+            print("结束日期{}小于起始日期{}!!".format(end_date, start_date))
+            return
+        time_scale = self.getPieTimeScale()
+        # 更新饼图时间范围标签
+        self.label_current_range_pie.setText(self.current_pie_date.toString(self.tab_ExOrIn_time_scale_format[time_scale]))
+        # 更新饼图
+        self.displayExOrInStructureChart(start_date, end_date)
+
+    def getPieTimeScale(self):
+        """
+        Describe: 获取Pie标签页中，当前选中的时间尺度
+
+        Returns: str['year', 'month', 'day']
+            表示时间尺度的字符串，'year' 表示年度，'month' 表示月度，'day' 表示日度
+        """
+        if self.radioButton_year_scale_tab_pie.isChecked():
+            return 'year'
+        elif self.radioButton_month_scale_tab_pie.isChecked():
+            return 'month'
+        elif self.radioButton_day_scale_tab_pie.isChecked():
+            return 'day'
+        else:
+            print("未选择时间尺度!!")
+            raise AttributeError("未选择时间尺度!!")
+
+    def getPieTimeInterval(self, refer_date, time_scale):
+        """
+        Describe: 根据参考日期和时间尺度返回天数
+
+        Args:
+            refer_date: str
+                日期字符串，格式为yyyyMMdd
+            time_scale: str['year', 'month', 'day']
+                时间尺度
+
+        Returns: int
+            对应时间尺度的间隔天数
+            example:
+            当time_scale为'month'，refer_date为'20240201'时，表示获取2024年2月的天数
+        """
+        if time_scale == 'year':
+            year = int(refer_date[0:4])
+            return 365 if ((year % 400 == 0) or ((year % 4 == 0) and (year % 100 != 0))) else 366
+        elif time_scale == 'month':
+            dt_refer_date = QDate(int(refer_date[0:4]), int(refer_date[4:6]), int(refer_date[6:8]))
+            return dt_refer_date.daysInMonth()
+        elif time_scale == 'day':
+            return 1
+        else:
+            print("不支持的时间尺度!!")
+            raise AttributeError("不支持的时间尺度!!")
+
+    def getNextReferDate(self, refer_date, time_scale):
+        """
+        Describe: 根据参考日期和时间尺度，返回下一个参考日期
+
+        Args:
+            refer_date: str
+                日期字符串，格式为yyyyMMdd
+            time_scale: str['year', 'month', 'day']
+                时间尺度
+
+        Returns: str
+            下一个参考日期
+        """
+        dt_refer_date = QDate(int(refer_date[0:4]), int(refer_date[4:6]), int(refer_date[6:8]))
+        dt_refer_date.addDays(self.getPieTimeInterval(refer_date, time_scale))
+        return str(refer_date)
+
+    def displayExOrInStructureChart(self, start_date, end_date):
+        # 获取日期范围内的收支记录数据
+        start_date = formatDateStrToDf(start_date)
+        end_date = formatDateStrToDf(end_date)
+        ex_ignore_category = expenseConst.IGNORE_CATEGORY
+        in_ignore_category = incomeConst.IGNORE_CATEGORY
+        ex_df = self.whole_year_records['expense']
+        in_df = self.whole_year_records['income']
+        df_expense = ex_df.loc[(ex_df['date'].between(start_date, end_date)) &
+                               (ex_df['category'].isin(ex_ignore_category) == False)].loc[:, ['value', 'category']]
+        df_income = in_df.loc[(in_df['date'].between(start_date, end_date)) &
+                              (in_df['category'].isin(in_ignore_category) == False)].loc[:, ['value', 'category']]
+
+        # 按日分组收支记录，得到每日总的收入与支出，以便计算每日净收入
+        df_expense_grouped = df_expense.groupby('category').sum().reset_index()
+        df_income_grouped = df_income.groupby('category').sum().reset_index()
+
+        self.expense_pie.updatePieSeries(df_expense_grouped, expenseConst.CATEGORY)
+        self.income_pie.updatePieSeries(df_income_grouped, incomeConst.CATEGORY)
+
+    def showTabExOrInPie(self):
+        if self.radioButton_expense_tab_pie.isChecked():
+            self.income_pie.displayFoldAnimation()
+            self.expense_pie.setVisible(True)
+            self.income_pie.setVisible(False)
+            self.expense_pie.displayExpandAnimation()
+        else:
+            self.expense_pie.displayFoldAnimation()
+            self.expense_pie.setVisible(False)
+            self.income_pie.setVisible(True)
+            self.income_pie.displayExpandAnimation()
